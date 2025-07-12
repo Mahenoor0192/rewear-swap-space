@@ -1,4 +1,3 @@
-
 import { itemsAPI, adminAPI } from './apiService';
 
 export interface CreateItemData {
@@ -8,7 +7,8 @@ export interface CreateItemData {
   size: string;
   condition: string;
   tags: string[];
-  images: File[];
+  images: string[];
+  points: number;
 }
 
 class ItemService {
