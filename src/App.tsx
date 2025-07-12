@@ -1,98 +1,145 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+
+import React, { useEffect } from 'react';
 import { Provider } from 'react-redux';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ThemeProvider } from 'next-themes';
-import { store } from './store';
-import { Toaster } from './components/ui/toaster';
-import { Toaster as SonnerToaster } from './components/ui/sonner';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { Toaster } from "@/components/ui/toaster";
+import { Toaster as Sonner } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { useSelector } from 'react-redux';
+import { store, RootState } from './store';
+import { ROUTES } from './config/constants';
 import './config/i18n';
+
+// Layout
+import Header from './components/layout/Header';
 
 // Pages
 import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
 import Dashboard from './pages/Dashboard';
-import AddItemPage from './pages/AddItemPage';
 import ItemDetailsPage from './pages/ItemDetailsPage';
+import AddItemPage from './pages/AddItemPage';
 import ProfilePage from './pages/ProfilePage';
 import AdminPanel from './pages/AdminPanel';
 import NotFound from './pages/NotFound';
 
+const queryClient = new QueryClient();
+
 // Protected Route Component
-import ProtectedRoute from './components/auth/ProtectedRoute';
-import AdminRoute from './components/auth/AdminRoute';
+const ProtectedRoute: React.FC<{ children: React.ReactNode; adminOnly?: boolean }> = ({ 
+  children, 
+  adminOnly = false 
+}) => {
+  const { isAuthenticated, user } = useSelector((state: RootState) => state.auth);
+  
+  if (!isAuthenticated) {
+    return <Navigate to={ROUTES.LOGIN} replace />;
+  }
+  
+  if (adminOnly && user?.userType !== 'admin') {
+    return <Navigate to={ROUTES.DASHBOARD} replace />;
+  }
+  
+  return <>{children}</>;
+};
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 1000 * 60 * 5, // 5 minutes
-      retry: 1,
-    },
-  },
-});
+// Theme Provider Component
+const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { isDarkMode } = useSelector((state: RootState) => state.theme);
+  
+  useEffect(() => {
+    if (isDarkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [isDarkMode]);
+  
+  return <>{children}</>;
+};
 
-function App() {
+// Main App Layout
+const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return (
-    <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-      <Provider store={store}>
-        <QueryClientProvider client={queryClient}>
-          <Router>
-            <div className="min-h-screen bg-background">
-              <Routes>
-                <Route path="/" element={<LandingPage />} />
-                <Route path="/login" element={<LoginPage />} />
-                <Route path="/signup" element={<SignupPage />} />
-                <Route
-                  path="/dashboard"
-                  element={
-                    <ProtectedRoute>
-                      <Dashboard />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/add-item"
-                  element={
-                    <ProtectedRoute>
-                      <AddItemPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/item/:id"
-                  element={
-                    <ProtectedRoute>
-                      <ItemDetailsPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/profile"
-                  element={
-                    <ProtectedRoute>
-                      <ProfilePage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/admin"
-                  element={
-                    <AdminRoute>
-                      <AdminPanel />
-                    </AdminRoute>
-                  }
-                />
-                <Route path="/404" element={<NotFound />} />
-                <Route path="*" element={<Navigate to="/404" replace />} />
-              </Routes>
-              <SonnerToaster />
-            </div>
-          </Router>
-        </QueryClientProvider>
-      </Provider>
-    </ThemeProvider>
+    <div className="min-h-screen bg-background text-foreground">
+      <Header />
+      <main>{children}</main>
+    </div>
   );
-}
+};
+
+// App Routes Component
+const AppRoutes: React.FC = () => {
+  return (
+    <Routes>
+      <Route path={ROUTES.HOME} element={
+        <AppLayout>
+          <LandingPage />
+        </AppLayout>
+      } />
+      
+      <Route path={ROUTES.LOGIN} element={<LoginPage />} />
+      <Route path="/signup" element={<SignupPage />} />
+      
+      <Route path={ROUTES.DASHBOARD} element={
+        <ProtectedRoute>
+          <AppLayout>
+            <Dashboard />
+          </AppLayout>
+        </ProtectedRoute>
+      } />
+      
+      <Route path="/profile" element={
+        <ProtectedRoute>
+          <AppLayout>
+            <ProfilePage />
+          </AppLayout>
+        </ProtectedRoute>
+      } />
+      
+      <Route path="/item/:id" element={
+        <AppLayout>
+          <ItemDetailsPage />
+        </AppLayout>
+      } />
+      
+      <Route path={ROUTES.ADD_ITEM} element={
+        <ProtectedRoute>
+          <AppLayout>
+            <AddItemPage />
+          </AppLayout>
+        </ProtectedRoute>
+      } />
+      
+      <Route path={ROUTES.ADMIN_PANEL} element={
+        <ProtectedRoute adminOnly>
+          <AppLayout>
+            <AdminPanel />
+          </AppLayout>
+        </ProtectedRoute>
+      } />
+      
+      <Route path="*" element={<NotFound />} />
+    </Routes>
+  );
+};
+
+const App = () => (
+  <Provider store={store}>
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <ThemeProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <AppRoutes />
+          </BrowserRouter>
+        </ThemeProvider>
+      </TooltipProvider>
+    </QueryClientProvider>
+  </Provider>
+);
 
 export default App;

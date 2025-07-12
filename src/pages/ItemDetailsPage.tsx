@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft, Heart, Share2, Star, User, Clock, Tag, Package, Repeat } from 'lucide-react';
+import { ArrowLeft, Heart, Share2, Star, User, Clock, Tag, Package } from 'lucide-react';
 import { RootState } from '../store';
 import itemService from '../services/itemService';
 import { Button } from '../components/ui/button';
@@ -11,7 +11,6 @@ import { Card, CardContent } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '../components/ui/avatar';
 import { Separator } from '../components/ui/separator';
-import SwapRequestModal from '../components/swap/SwapRequestModal';
 
 const ItemDetailsPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -22,7 +21,6 @@ const ItemDetailsPage: React.FC = () => {
   const [item, setItem] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState(0);
-  const [showSwapModal, setShowSwapModal] = useState(false);
 
   useEffect(() => {
     const loadItem = async () => {
@@ -244,9 +242,7 @@ const ItemDetailsPage: React.FC = () => {
                 <Button
                   size="lg"
                   className="flex-1 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
-                  onClick={() => setShowSwapModal(true)}
                 >
-                  <Repeat className="h-4 w-4 mr-2" />
                   {t('item.swapRequest')}
                 </Button>
                 <Button
@@ -278,14 +274,6 @@ const ItemDetailsPage: React.FC = () => {
           </div>
         </div>
       </div>
-
-      {/* Swap Request Modal */}
-      <SwapRequestModal
-        isOpen={showSwapModal}
-        onClose={() => setShowSwapModal(false)}
-        targetItemId={item.id}
-        targetItemTitle={item.title}
-      />
     </div>
   );
 };

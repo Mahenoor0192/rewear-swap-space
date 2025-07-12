@@ -1,14 +1,15 @@
 
 import React from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { useTranslation } from 'react-i18next';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
 import { Eye, EyeOff, Mail, Lock } from 'lucide-react';
-import { RootState, AppDispatch } from '../store';
-import { loginUser } from '../store/slices/authSlice';
+import { RootState } from '../store';
+import { loginStart, loginSuccess, loginFailure } from '../store/slices/authSlice';
 import { ROUTES, USER_TYPES } from '../config/constants';
+import authService from '../services/authService';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Input } from '../components/ui/input';
@@ -22,7 +23,7 @@ interface LoginFormValues {
 const LoginPage: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const dispatch = useDispatch<AppDispatch>();
+  const dispatch = useDispatch();
   
   const { loading, error } = useSelector((state: RootState) => state.auth);
   const [showPassword, setShowPassword] = React.useState(false);
@@ -37,18 +38,22 @@ const LoginPage: React.FC = () => {
   });
 
   const handleSubmit = async (values: LoginFormValues) => {
+    dispatch(loginStart());
+    
     try {
-      const result = await dispatch(loginUser(values)).unwrap();
+      const response = await authService.login(values);
+      
+      dispatch(loginSuccess(response.user));
+      localStorage.setItem('authToken', response.token);
       
       // Navigate based on user type
-      if (result.userType === USER_TYPES.ADMIN) {
+      if (response.user.userType === USER_TYPES.ADMIN) {
         navigate(ROUTES.ADMIN_PANEL);
       } else {
         navigate(ROUTES.DASHBOARD);
       }
-    } catch (error) {
-      // Error is handled by the thunk and toast
-      console.error('Login failed:', error);
+    } catch (error: any) {
+      dispatch(loginFailure(error.message || 'Login failed'));
     }
   };
 
@@ -154,25 +159,11 @@ const LoginPage: React.FC = () => {
               )}
             </Formik>
 
-            <div className="mt-6 text-center">
-              <p className="text-sm text-muted-foreground mb-4">
-                Don't have an account?
-              </p>
-              <Link to={ROUTES.SIGNUP}>
-                <Button
-                  variant="outline"
-                  className="w-full border-purple-500/20 text-purple-600 hover:bg-purple-500/10"
-                >
-                  Create Account
-                </Button>
-              </Link>
-            </div>
-
             <div className="mt-6 p-4 bg-muted/30 rounded-lg">
               <p className="text-sm text-muted-foreground mb-2">Demo Credentials:</p>
               <div className="space-y-1 text-xs">
-                <p><strong>User:</strong> user@rewear.com / password</p>
-                <p><strong>Admin:</strong> admin@mailinator.com / admin@123</p>
+                <p><strong>User:</strong> user@rewear.com / password123</p>
+                <p><strong>Admin:</strong> admin@rewear.com / password123</p>
               </div>
             </div>
           </CardContent>

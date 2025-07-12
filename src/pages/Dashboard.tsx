@@ -3,7 +3,7 @@ import React, { useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Star, TrendingUp, Package, Clock, CheckCircle, User, ShoppingBag, Repeat } from 'lucide-react';
+import { Plus, Star, TrendingUp, Package, Clock, CheckCircle, User, ShoppingBag } from 'lucide-react';
 import { RootState } from '../store';
 import { setUserItems } from '../store/slices/itemsSlice';
 import { ROUTES } from '../config/constants';
@@ -14,7 +14,6 @@ import { Avatar, AvatarFallback, AvatarImage } from '../components/ui/avatar';
 import { Badge } from '../components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import ItemCard from '../components/common/ItemCard';
-import SwapRequestsList from '../components/swap/SwapRequestsList';
 
 const Dashboard: React.FC = () => {
   const { t } = useTranslation();
@@ -207,7 +206,7 @@ const Dashboard: React.FC = () => {
           {/* My Items and Purchases */}
           <div className="lg:col-span-2">
             <Tabs defaultValue="listings" className="w-full">
-              <TabsList className="grid w-full grid-cols-3">
+              <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="listings" className="flex items-center space-x-2">
                   <Package className="h-4 w-4" />
                   <span>{t('dashboard.myListings')}</span>
@@ -215,10 +214,6 @@ const Dashboard: React.FC = () => {
                 <TabsTrigger value="purchases" className="flex items-center space-x-2">
                   <ShoppingBag className="h-4 w-4" />
                   <span>{t('dashboard.myPurchases')}</span>
-                </TabsTrigger>
-                <TabsTrigger value="swaps" className="flex items-center space-x-2">
-                  <Repeat className="h-4 w-4" />
-                  <span>Swaps</span>
                 </TabsTrigger>
               </TabsList>
 
@@ -311,10 +306,6 @@ const Dashboard: React.FC = () => {
                     )}
                   </CardContent>
                 </Card>
-              </TabsContent>
-
-              <TabsContent value="swaps" className="mt-6">
-                <SwapRequestsList />
               </TabsContent>
             </Tabs>
           </div>

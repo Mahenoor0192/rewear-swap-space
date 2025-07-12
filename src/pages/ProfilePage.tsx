@@ -1,77 +1,39 @@
 
-import React, { useState, useEffect } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
+import React, { useState } from 'react';
+import { useSelector } from 'react-redux';
 import { useTranslation } from 'react-i18next';
 import { User, Mail, Phone, MapPin, Camera, Edit } from 'lucide-react';
-import { RootState, AppDispatch } from '../store';
-import { updateUserProfile } from '../store/slices/authSlice';
-import authService from '../services/authService';
+import { RootState } from '../store';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '../components/ui/avatar';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
-import { toast } from 'sonner';
 
 const ProfilePage: React.FC = () => {
   const { t } = useTranslation();
-  const dispatch = useDispatch<AppDispatch>();
-  const { user, loading } = useSelector((state: RootState) => state.auth);
+  const { user } = useSelector((state: RootState) => state.auth);
   const [isEditing, setIsEditing] = useState(false);
   const [profileData, setProfileData] = useState({
-    name: '',
-    phone_number: '',
-    address: ''
+    name: user?.name || 'John Doe',
+    email: user?.email || 'john.doe@example.com',
+    phone: '+1 (555) 123-4567',
+    address: '123 Main Street, City, State 12345',
+    bio: 'Fashion enthusiast who loves sustainable clothing and sharing great finds with the community.'
   });
-  const [profileLoading, setProfileLoading] = useState(false);
 
-  useEffect(() => {
-    const loadProfile = async () => {
-      if (!user) return;
-      
-      try {
-        setProfileLoading(true);
-        const profile = await authService.getProfile();
-        setProfileData({
-          name: profile.user.name || '',
-          phone_number: profile.user.phone_number || '',
-          address: profile.user.address || ''
-        });
-      } catch (error) {
-        console.error('Failed to load profile:', error);
-      } finally {
-        setProfileLoading(false);
-      }
-    };
-
-    loadProfile();
-  }, [user]);
-
-  const handleSave = async () => {
-    try {
-      await dispatch(updateUserProfile(profileData)).unwrap();
-      setIsEditing(false);
-    } catch (error) {
-      console.error('Failed to update profile:', error);
-    }
+  const handleSave = () => {
+    // Save profile data
+    console.log('Saving profile:', profileData);
+    setIsEditing(false);
   };
 
-  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      // TODO: Implement image upload API
-      toast.info('Image upload feature coming soon');
       console.log('Uploading image:', file);
     }
   };
-
-  if (profileLoading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -84,7 +46,6 @@ const ProfilePage: React.FC = () => {
                 <Button
                   variant="outline"
                   onClick={() => setIsEditing(!isEditing)}
-                  disabled={loading}
                 >
                   <Edit className="h-4 w-4 mr-2" />
                   {isEditing ? t('common.cancel') : t('profile.edit')}
@@ -98,7 +59,7 @@ const ProfilePage: React.FC = () => {
                   <Avatar className="h-24 w-24">
                     <AvatarImage src={user?.avatar} alt={profileData.name} />
                     <AvatarFallback className="bg-gradient-to-r from-purple-500 to-pink-500 text-white text-2xl">
-                      {profileData.name.charAt(0) || 'U'}
+                      {profileData.name.charAt(0)}
                     </AvatarFallback>
                   </Avatar>
                   {isEditing && (
@@ -115,13 +76,13 @@ const ProfilePage: React.FC = () => {
                 </div>
                 <div>
                   <h3 className="text-xl font-semibold text-foreground">
-                    {profileData.name || 'User'}
+                    {profileData.name}
                   </h3>
                   <p className="text-muted-foreground">{t('profile.member')}</p>
                   <div className="flex items-center mt-2">
                     <div className="flex items-center space-x-1">
                       <span className="text-2xl font-bold text-foreground">
-                        {user?.points || 0}
+                        {user?.points || 120}
                       </span>
                       <span className="text-sm text-muted-foreground">
                         {t('profile.points')}
@@ -153,11 +114,10 @@ const ProfilePage: React.FC = () => {
                   </Label>
                   <Input
                     id="email"
-                    value={user?.email || ''}
-                    disabled={true}
-                    className="bg-muted"
+                    value={profileData.email}
+                    onChange={(e) => setProfileData({ ...profileData, email: e.target.value })}
+                    disabled={!isEditing}
                   />
-                  <p className="text-xs text-muted-foreground">Email cannot be changed</p>
                 </div>
 
                 <div className="space-y-2">
@@ -167,8 +127,8 @@ const ProfilePage: React.FC = () => {
                   </Label>
                   <Input
                     id="phone"
-                    value={profileData.phone_number}
-                    onChange={(e) => setProfileData({ ...profileData, phone_number: e.target.value })}
+                    value={profileData.phone}
+                    onChange={(e) => setProfileData({ ...profileData, phone: e.target.value })}
                     disabled={!isEditing}
                   />
                 </div>
@@ -185,6 +145,17 @@ const ProfilePage: React.FC = () => {
                     disabled={!isEditing}
                   />
                 </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="bio">{t('profile.bio')}</Label>
+                  <textarea
+                    id="bio"
+                    value={profileData.bio}
+                    onChange={(e) => setProfileData({ ...profileData, bio: e.target.value })}
+                    disabled={!isEditing}
+                    className="w-full min-h-[100px] p-3 border border-input bg-background text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 rounded-md"
+                  />
+                </div>
               </div>
 
               {isEditing && (
@@ -192,9 +163,8 @@ const ProfilePage: React.FC = () => {
                   <Button
                     onClick={handleSave}
                     className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
-                    disabled={loading}
                   >
-                    {loading ? t('common.loading') : t('common.save')}
+                    {t('common.save')}
                   </Button>
                   <Button
                     variant="outline"

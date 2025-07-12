@@ -1,5 +1,5 @@
 
-import { toast } from 'sonner';
+import api from './api';
 
 export interface CreateItemData {
   title: string;
@@ -8,221 +8,181 @@ export interface CreateItemData {
   size: string;
   condition: string;
   tags: string[];
-  images: File[];
+  images: string[];
   points: number;
 }
 
-// Static items data
-let staticItems = [
-  {
-    id: '1',
-    title: 'Vintage Denim Jacket',
-    description: 'Classic vintage denim jacket in excellent condition. Perfect for layering.',
-    category: 'outerwear',
-    size: 'M',
-    condition: 'good',
-    tags: ['vintage', 'denim', 'classic'],
-    images: ['/placeholder.svg', '/placeholder.svg'],
-    points: 75,
-    userId: '1',
-    userName: 'John Doe',
-    userAvatar: '/placeholder.svg',
-    isAvailable: true,
-    status: 'approved',
-    createdAt: '2024-01-15T10:00:00Z'
-  },
-  {
-    id: '2',
-    title: 'Designer Silk Scarf',
-    description: 'Beautiful silk scarf with floral pattern. Barely worn.',
-    category: 'accessories',
-    size: 'one-size',
-    condition: 'like_new',
-    tags: ['silk', 'designer', 'floral'],
-    images: ['/placeholder.svg'],
-    points: 45,
-    userId: '2',
-    userName: 'Jane Smith',
-    userAvatar: '/placeholder.svg',
-    isAvailable: true,
-    status: 'approved',
-    createdAt: '2024-01-14T14:30:00Z'
-  },
-  {
-    id: '3',
-    title: 'Leather Boots',
-    description: 'High-quality leather boots with minimal wear. Size 9.',
-    category: 'shoes',
-    size: '9',
-    condition: 'good',
-    tags: ['leather', 'boots', 'brown'],
-    images: ['/placeholder.svg', '/placeholder.svg'],
-    points: 90,
-    userId: '1',
-    userName: 'John Doe',
-    userAvatar: '/placeholder.svg',
-    isAvailable: true,
-    status: 'approved',
-    createdAt: '2024-01-13T09:15:00Z'
-  },
-  {
-    id: '4',
-    title: 'Wool Sweater',
-    description: 'Cozy wool sweater for winter. Needs approval.',
-    category: 'tops',
-    size: 'L',
-    condition: 'good',
-    tags: ['wool', 'winter', 'cozy'],
-    images: ['/placeholder.svg'],
-    points: 60,
-    userId: '1',
-    userName: 'John Doe',
-    userAvatar: '/placeholder.svg',
-    isAvailable: false,
-    status: 'pending',
-    createdAt: '2024-01-16T16:45:00Z'
-  }
-];
-
 class ItemService {
   async getFeaturedItems() {
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    const availableItems = staticItems.filter(item => 
-      item.isAvailable && item.status === 'approved'
-    );
-    
-    return availableItems;
+    try {
+      // const response = await api.get('/items/featured');
+      // return response.data;
+
+      // Dummy data for demo
+      return [
+        {
+          id: '1',
+          title: 'Vintage Denim Jacket',
+          description: 'Classic vintage denim jacket in excellent condition',
+          category: 'tops',
+          size: 'm',
+          condition: 'good',
+          tags: ['vintage', 'denim', 'casual'],
+          images: ['https://images.unsplash.com/photo-1576566588028-4147f3842f27?ixlib=rb-4.0.3'],
+          userId: '2',
+          userName: 'Sarah Johnson',
+          userAvatar: 'https://images.unsplash.com/photo-1494790108755-2616b9e75e4c?ixlib=rb-4.0.3',
+          points: 25,
+          status: 'approved',
+          createdAt: '2024-01-15',
+          isAvailable: true
+        },
+        {
+          id: '2',
+          title: 'Designer Silk Dress',
+          description: 'Beautiful silk dress perfect for special occasions',
+          category: 'dresses',
+          size: 's',
+          condition: 'like_new',
+          tags: ['designer', 'silk', 'formal'],
+          images: ['https://images.unsplash.com/photo-1595777457583-95e059d581b8?ixlib=rb-4.0.3'],
+          userId: '3',
+          userName: 'Emma Wilson',
+          userAvatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-4.0.3',
+          points: 45,
+          status: 'approved',
+          createdAt: '2024-01-14',
+          isAvailable: true
+        },
+        {
+          id: '3',
+          title: 'Leather Boots',
+          description: 'Genuine leather boots, barely worn',
+          category: 'shoes',
+          size: '8',
+          condition: 'like_new',
+          tags: ['leather', 'boots', 'winter'],
+          images: ['https://images.unsplash.com/photo-1608256246200-53e8b47b2c74?ixlib=rb-4.0.3'],
+          userId: '4',
+          userName: 'Mike Chen',
+          userAvatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3',
+          points: 35,
+          status: 'approved',
+          createdAt: '2024-01-13',
+          isAvailable: true
+        }
+      ];
+    } catch (error) {
+      throw error;
+    }
   }
 
   async getItemById(id: string) {
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 300));
-    
-    const item = staticItems.find(item => item.id === id);
-    if (!item) {
-      toast.error('Item not found');
-      throw new Error('Item not found');
+    try {
+      // const response = await api.get(`/items/${id}`);
+      // return response.data;
+
+      const items = await this.getFeaturedItems();
+      return items.find(item => item.id === id);
+    } catch (error) {
+      throw error;
     }
-    
-    return item;
   }
 
-  async getUserItems(userId?: string) {
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 400));
-    
-    const token = localStorage.getItem('authToken');
-    if (!token) {
-      return [];
+  async getUserItems(userId: string) {
+    try {
+      // const response = await api.get(`/users/${userId}/items`);
+      // return response.data;
+
+      return [
+        {
+          id: '4',
+          title: 'My Casual T-Shirt',
+          description: 'Comfortable cotton t-shirt',
+          category: 'tops',
+          size: 'l',
+          condition: 'good',
+          tags: ['casual', 'cotton'],
+          images: ['https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?ixlib=rb-4.0.3'],
+          userId: userId,
+          userName: 'You',
+          points: 15,
+          status: 'approved',
+          createdAt: '2024-01-12',
+          isAvailable: true
+        }
+      ];
+    } catch (error) {
+      throw error;
     }
-    
-    const currentUserId = token.split('-').pop();
-    const userItems = staticItems.filter(item => 
-      item.userId === currentUserId && item.isAvailable
-    );
-    
-    return userItems;
   }
 
   async createItem(itemData: CreateItemData) {
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 800));
-    
-    const token = localStorage.getItem('authToken');
-    if (!token) {
-      toast.error('Please login to create items');
-      throw new Error('Not authenticated');
+    try {
+      // const response = await api.post('/items', itemData);
+      // return response.data;
+
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      return {
+        id: Date.now().toString(),
+        ...itemData,
+        userId: '1',
+        userName: 'You',
+        status: 'pending',
+        createdAt: new Date().toISOString(),
+        isAvailable: true
+      };
+    } catch (error) {
+      throw error;
     }
-    
-    const userId = token.split('-').pop();
-    
-    // Convert File objects to placeholder URLs for demo
-    const imageUrls = itemData.images.map((_, index) => `/placeholder.svg?item=${Date.now()}&img=${index}`);
-    
-    const newItem = {
-      id: String(staticItems.length + 1),
-      title: itemData.title,
-      description: itemData.description,
-      category: itemData.category,
-      size: itemData.size,
-      condition: itemData.condition,
-      tags: itemData.tags,
-      images: imageUrls,
-      points: itemData.points,
-      userId: userId || '1',
-      userName: 'Current User',
-      userAvatar: '/placeholder.svg',
-      isAvailable: false, // Pending approval
-      status: 'pending',
-      createdAt: new Date().toISOString()
-    };
-    
-    staticItems.push(newItem);
-    toast.success('Item created successfully!');
-    
-    return newItem;
   }
 
   async getPendingItems() {
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 400));
-    
-    const pendingItems = staticItems.filter(item => item.status === 'pending');
-    return pendingItems;
+    try {
+      // const response = await api.get('/admin/items/pending');
+      // return response.data;
+
+      return [
+        {
+          id: '5',
+          title: 'Pending Item 1',
+          description: 'This item is awaiting approval',
+          category: 'tops',
+          size: 'm',
+          condition: 'good',
+          tags: ['pending'],
+          images: ['https://images.unsplash.com/photo-1434389677669-e08b4cac3105?ixlib=rb-4.0.3'],
+          userId: '5',
+          userName: 'Jane Doe',
+          points: 20,
+          status: 'pending',
+          createdAt: '2024-01-16',
+          isAvailable: true
+        }
+      ];
+    } catch (error) {
+      throw error;
+    }
   }
 
   async approveItem(itemId: string) {
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 300));
-    
-    const itemIndex = staticItems.findIndex(item => item.id === itemId);
-    if (itemIndex === -1) {
-      toast.error('Item not found');
-      throw new Error('Item not found');
+    try {
+      // await api.patch(`/admin/items/${itemId}/approve`);
+      console.log(`Item ${itemId} approved`);
+    } catch (error) {
+      throw error;
     }
-    
-    staticItems[itemIndex] = {
-      ...staticItems[itemIndex],
-      status: 'approved',
-      isAvailable: true
-    };
-    
-    toast.success('Item approved successfully!');
   }
 
   async rejectItem(itemId: string) {
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 300));
-    
-    const itemIndex = staticItems.findIndex(item => item.id === itemId);
-    if (itemIndex === -1) {
-      toast.error('Item not found');
-      throw new Error('Item not found');
+    try {
+      // await api.patch(`/admin/items/${itemId}/reject`);
+      console.log(`Item ${itemId} rejected`);
+    } catch (error) {
+      throw error;
     }
-    
-    staticItems[itemIndex] = {
-      ...staticItems[itemIndex],
-      status: 'rejected',
-      isAvailable: false
-    };
-    
-    toast.success('Item rejected successfully!');
-  }
-
-  async deleteItem(itemId: string) {
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 300));
-    
-    const itemIndex = staticItems.findIndex(item => item.id === itemId);
-    if (itemIndex === -1) {
-      toast.error('Item not found');
-      throw new Error('Item not found');
-    }
-    
-    staticItems.splice(itemIndex, 1);
-    toast.success('Item deleted successfully!');
   }
 }
 
