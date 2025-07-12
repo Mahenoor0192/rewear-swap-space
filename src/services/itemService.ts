@@ -1,5 +1,4 @@
 
-import { itemsAPI } from './apiService';
 import { toast } from 'sonner';
 
 export interface CreateItemData {
@@ -13,111 +12,217 @@ export interface CreateItemData {
   points: number;
 }
 
+// Static items data
+let staticItems = [
+  {
+    id: '1',
+    title: 'Vintage Denim Jacket',
+    description: 'Classic vintage denim jacket in excellent condition. Perfect for layering.',
+    category: 'outerwear',
+    size: 'M',
+    condition: 'good',
+    tags: ['vintage', 'denim', 'classic'],
+    images: ['/placeholder.svg', '/placeholder.svg'],
+    points: 75,
+    userId: '1',
+    userName: 'John Doe',
+    userAvatar: '/placeholder.svg',
+    isAvailable: true,
+    status: 'approved',
+    createdAt: '2024-01-15T10:00:00Z'
+  },
+  {
+    id: '2',
+    title: 'Designer Silk Scarf',
+    description: 'Beautiful silk scarf with floral pattern. Barely worn.',
+    category: 'accessories',
+    size: 'one-size',
+    condition: 'like_new',
+    tags: ['silk', 'designer', 'floral'],
+    images: ['/placeholder.svg'],
+    points: 45,
+    userId: '2',
+    userName: 'Jane Smith',
+    userAvatar: '/placeholder.svg',
+    isAvailable: true,
+    status: 'approved',
+    createdAt: '2024-01-14T14:30:00Z'
+  },
+  {
+    id: '3',
+    title: 'Leather Boots',
+    description: 'High-quality leather boots with minimal wear. Size 9.',
+    category: 'shoes',
+    size: '9',
+    condition: 'good',
+    tags: ['leather', 'boots', 'brown'],
+    images: ['/placeholder.svg', '/placeholder.svg'],
+    points: 90,
+    userId: '1',
+    userName: 'John Doe',
+    userAvatar: '/placeholder.svg',
+    isAvailable: true,
+    status: 'approved',
+    createdAt: '2024-01-13T09:15:00Z'
+  },
+  {
+    id: '4',
+    title: 'Wool Sweater',
+    description: 'Cozy wool sweater for winter. Needs approval.',
+    category: 'tops',
+    size: 'L',
+    condition: 'good',
+    tags: ['wool', 'winter', 'cozy'],
+    images: ['/placeholder.svg'],
+    points: 60,
+    userId: '1',
+    userName: 'John Doe',
+    userAvatar: '/placeholder.svg',
+    isAvailable: false,
+    status: 'pending',
+    createdAt: '2024-01-16T16:45:00Z'
+  }
+];
+
 class ItemService {
   async getFeaturedItems() {
-    try {
-      const response = await itemsAPI.getAvailableItems();
-      return response.items || [];
-    } catch (error: any) {
-      const message = error.response?.data?.message || 'Failed to load featured items';
-      toast.error(message);
-      console.error('Failed to load featured items:', error);
-      return [];
-    }
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    const availableItems = staticItems.filter(item => 
+      item.isAvailable && item.status === 'approved'
+    );
+    
+    return availableItems;
   }
 
   async getItemById(id: string) {
-    try {
-      const response = await itemsAPI.getItemById(id);
-      return response.item;
-    } catch (error: any) {
-      const message = error.response?.data?.message || 'Failed to load item details';
-      toast.error(message);
-      throw error;
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 300));
+    
+    const item = staticItems.find(item => item.id === id);
+    if (!item) {
+      toast.error('Item not found');
+      throw new Error('Item not found');
     }
+    
+    return item;
   }
 
   async getUserItems(userId?: string) {
-    try {
-      const response = await itemsAPI.getMyItems();
-      return response.items?.filter((item: any) => item.isAvailable) || [];
-    } catch (error: any) {
-      const message = error.response?.data?.message || 'Failed to load your items';
-      toast.error(message);
-      console.error('Failed to load user items:', error);
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 400));
+    
+    const token = localStorage.getItem('authToken');
+    if (!token) {
       return [];
     }
+    
+    const currentUserId = token.split('-').pop();
+    const userItems = staticItems.filter(item => 
+      item.userId === currentUserId && item.isAvailable
+    );
+    
+    return userItems;
   }
 
   async createItem(itemData: CreateItemData) {
-    try {
-      const formData = new FormData();
-      formData.append('title', itemData.title);
-      formData.append('description', itemData.description);
-      formData.append('category', itemData.category);
-      formData.append('size', itemData.size);
-      formData.append('condition', itemData.condition);
-      formData.append('tags', JSON.stringify(itemData.tags));
-      formData.append('points', itemData.points.toString());
-      
-      // Append each image file
-      itemData.images.forEach((image, index) => {
-        formData.append('images', image);
-      });
-
-      const response = await itemsAPI.addItem(formData);
-      toast.success('Item created successfully!');
-      return response.item;
-    } catch (error: any) {
-      const message = error.response?.data?.message || 'Failed to create item';
-      toast.error(message);
-      throw error;
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 800));
+    
+    const token = localStorage.getItem('authToken');
+    if (!token) {
+      toast.error('Please login to create items');
+      throw new Error('Not authenticated');
     }
+    
+    const userId = token.split('-').pop();
+    
+    // Convert File objects to placeholder URLs for demo
+    const imageUrls = itemData.images.map((_, index) => `/placeholder.svg?item=${Date.now()}&img=${index}`);
+    
+    const newItem = {
+      id: String(staticItems.length + 1),
+      title: itemData.title,
+      description: itemData.description,
+      category: itemData.category,
+      size: itemData.size,
+      condition: itemData.condition,
+      tags: itemData.tags,
+      images: imageUrls,
+      points: itemData.points,
+      userId: userId || '1',
+      userName: 'Current User',
+      userAvatar: '/placeholder.svg',
+      isAvailable: false, // Pending approval
+      status: 'pending',
+      createdAt: new Date().toISOString()
+    };
+    
+    staticItems.push(newItem);
+    toast.success('Item created successfully!');
+    
+    return newItem;
   }
 
   async getPendingItems() {
-    try {
-      const response = await itemsAPI.getAllItems();
-      return response.items?.filter((item: any) => item.status === 'pending') || [];
-    } catch (error: any) {
-      const message = error.response?.data?.message || 'Failed to load pending items';
-      toast.error(message);
-      console.error('Failed to load pending items:', error);
-      return [];
-    }
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 400));
+    
+    const pendingItems = staticItems.filter(item => item.status === 'pending');
+    return pendingItems;
   }
 
   async approveItem(itemId: string) {
-    try {
-      await itemsAPI.updateItemStatus(itemId, 'approved');
-      toast.success('Item approved successfully!');
-    } catch (error: any) {
-      const message = error.response?.data?.message || 'Failed to approve item';
-      toast.error(message);
-      throw error;
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 300));
+    
+    const itemIndex = staticItems.findIndex(item => item.id === itemId);
+    if (itemIndex === -1) {
+      toast.error('Item not found');
+      throw new Error('Item not found');
     }
+    
+    staticItems[itemIndex] = {
+      ...staticItems[itemIndex],
+      status: 'approved',
+      isAvailable: true
+    };
+    
+    toast.success('Item approved successfully!');
   }
 
   async rejectItem(itemId: string) {
-    try {
-      await itemsAPI.updateItemStatus(itemId, 'rejected');
-      toast.success('Item rejected successfully!');
-    } catch (error: any) {
-      const message = error.response?.data?.message || 'Failed to reject item';
-      toast.error(message);
-      throw error;
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 300));
+    
+    const itemIndex = staticItems.findIndex(item => item.id === itemId);
+    if (itemIndex === -1) {
+      toast.error('Item not found');
+      throw new Error('Item not found');
     }
+    
+    staticItems[itemIndex] = {
+      ...staticItems[itemIndex],
+      status: 'rejected',
+      isAvailable: false
+    };
+    
+    toast.success('Item rejected successfully!');
   }
 
   async deleteItem(itemId: string) {
-    try {
-      await itemsAPI.deleteItem(itemId);
-      toast.success('Item deleted successfully!');
-    } catch (error: any) {
-      const message = error.response?.data?.message || 'Failed to delete item';
-      toast.error(message);
-      throw error;
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 300));
+    
+    const itemIndex = staticItems.findIndex(item => item.id === itemId);
+    if (itemIndex === -1) {
+      toast.error('Item not found');
+      throw new Error('Item not found');
     }
+    
+    staticItems.splice(itemIndex, 1);
+    toast.success('Item deleted successfully!');
   }
 }
 
