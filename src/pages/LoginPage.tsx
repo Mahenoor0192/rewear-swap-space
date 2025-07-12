@@ -6,10 +6,9 @@ import { useTranslation } from 'react-i18next';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
 import { Eye, EyeOff, Mail, Lock } from 'lucide-react';
-import { RootState } from '../store';
-import { loginStart, loginSuccess, loginFailure } from '../store/slices/authSlice';
+import { RootState, AppDispatch } from '../store';
+import { loginUser } from '../store/slices/authSlice';
 import { ROUTES, USER_TYPES } from '../config/constants';
-import authService from '../services/authService';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Input } from '../components/ui/input';
@@ -23,7 +22,7 @@ interface LoginFormValues {
 const LoginPage: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
   
   const { loading, error } = useSelector((state: RootState) => state.auth);
   const [showPassword, setShowPassword] = React.useState(false);
@@ -38,22 +37,18 @@ const LoginPage: React.FC = () => {
   });
 
   const handleSubmit = async (values: LoginFormValues) => {
-    dispatch(loginStart());
-    
     try {
-      const response = await authService.login(values);
-      
-      dispatch(loginSuccess(response.user));
-      localStorage.setItem('authToken', response.token);
+      const result = await dispatch(loginUser(values)).unwrap();
       
       // Navigate based on user type
-      if (response.user.userType === USER_TYPES.ADMIN) {
+      if (result.userType === USER_TYPES.ADMIN) {
         navigate(ROUTES.ADMIN_PANEL);
       } else {
         navigate(ROUTES.DASHBOARD);
       }
-    } catch (error: any) {
-      dispatch(loginFailure(error.message || 'Login failed'));
+    } catch (error) {
+      // Error is handled by the thunk and toast
+      console.error('Login failed:', error);
     }
   };
 
@@ -162,8 +157,8 @@ const LoginPage: React.FC = () => {
             <div className="mt-6 p-4 bg-muted/30 rounded-lg">
               <p className="text-sm text-muted-foreground mb-2">Demo Credentials:</p>
               <div className="space-y-1 text-xs">
-                <p><strong>User:</strong> user@rewear.com / password123</p>
-                <p><strong>Admin:</strong> admin@rewear.com / password123</p>
+                <p><strong>User:</strong> user@rewear.com / password</p>
+                <p><strong>Admin:</strong> admin@mailinator.com / admin@123</p>
               </div>
             </div>
           </CardContent>

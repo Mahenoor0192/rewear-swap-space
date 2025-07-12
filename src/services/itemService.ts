@@ -1,5 +1,5 @@
 
-import api from './api';
+import { itemsAPI, adminAPI } from './apiService';
 
 export interface CreateItemData {
   title: string;
@@ -8,15 +8,14 @@ export interface CreateItemData {
   size: string;
   condition: string;
   tags: string[];
-  images: string[];
-  points: number;
+  images: File[];
 }
 
 class ItemService {
   async getFeaturedItems() {
     try {
-      // const response = await api.get('/items/featured');
-      // return response.data;
+      // const response = await itemsAPI.getAvailableItems();
+      // return response.items;
 
       // Dummy data for demo
       return [
@@ -53,23 +52,6 @@ class ItemService {
           status: 'approved',
           createdAt: '2024-01-14',
           isAvailable: true
-        },
-        {
-          id: '3',
-          title: 'Leather Boots',
-          description: 'Genuine leather boots, barely worn',
-          category: 'shoes',
-          size: '8',
-          condition: 'like_new',
-          tags: ['leather', 'boots', 'winter'],
-          images: ['https://images.unsplash.com/photo-1608256246200-53e8b47b2c74?ixlib=rb-4.0.3'],
-          userId: '4',
-          userName: 'Mike Chen',
-          userAvatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3',
-          points: 35,
-          status: 'approved',
-          createdAt: '2024-01-13',
-          isAvailable: true
         }
       ];
     } catch (error) {
@@ -79,8 +61,8 @@ class ItemService {
 
   async getItemById(id: string) {
     try {
-      // const response = await api.get(`/items/${id}`);
-      // return response.data;
+      // const response = await itemsAPI.getItemById(id);
+      // return response.item;
 
       const items = await this.getFeaturedItems();
       return items.find(item => item.id === id);
@@ -91,8 +73,8 @@ class ItemService {
 
   async getUserItems(userId: string) {
     try {
-      // const response = await api.get(`/users/${userId}/items`);
-      // return response.data;
+      // const response = await itemsAPI.getMyItems();
+      // return response.items;
 
       return [
         {
@@ -119,20 +101,39 @@ class ItemService {
 
   async createItem(itemData: CreateItemData) {
     try {
-      // const response = await api.post('/items', itemData);
-      // return response.data;
+      const formData = new FormData();
+      formData.append('title', itemData.title);
+      formData.append('description', itemData.description);
+      formData.append('category', itemData.category);
+      formData.append('size', itemData.size);
+      formData.append('condition', itemData.condition);
+      formData.append('tags', JSON.stringify(itemData.tags));
+      
+      itemData.images.forEach((image, index) => {
+        formData.append(`images`, image);
+      });
+
+      // const response = await itemsAPI.addItem(formData);
+      // return response.item;
 
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1500));
       
       return {
         id: Date.now().toString(),
-        ...itemData,
+        title: itemData.title,
+        description: itemData.description,
+        category: itemData.category,
+        size: itemData.size,
+        condition: itemData.condition,
+        tags: itemData.tags,
+        images: ['https://images.unsplash.com/photo-1434389677669-e08b4cac3105?ixlib=rb-4.0.3'],
         userId: '1',
         userName: 'You',
         status: 'pending',
         createdAt: new Date().toISOString(),
-        isAvailable: true
+        isAvailable: true,
+        points: this.calculatePoints(itemData.condition)
       };
     } catch (error) {
       throw error;
@@ -141,8 +142,8 @@ class ItemService {
 
   async getPendingItems() {
     try {
-      // const response = await api.get('/admin/items/pending');
-      // return response.data;
+      // const response = await itemsAPI.getAllItems();
+      // return response.items.filter(item => item.status === 'pending');
 
       return [
         {
@@ -169,7 +170,7 @@ class ItemService {
 
   async approveItem(itemId: string) {
     try {
-      // await api.patch(`/admin/items/${itemId}/approve`);
+      // await itemsAPI.updateItemStatus(itemId, 'approved');
       console.log(`Item ${itemId} approved`);
     } catch (error) {
       throw error;
@@ -178,11 +179,30 @@ class ItemService {
 
   async rejectItem(itemId: string) {
     try {
-      // await api.patch(`/admin/items/${itemId}/reject`);
+      // await itemsAPI.updateItemStatus(itemId, 'rejected');
       console.log(`Item ${itemId} rejected`);
     } catch (error) {
       throw error;
     }
+  }
+
+  async deleteItem(itemId: string) {
+    try {
+      // await itemsAPI.deleteItem(itemId);
+      console.log(`Item ${itemId} deleted`);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  private calculatePoints(condition: string): number {
+    const pointsMap: { [key: string]: number } = {
+      'new': 50,
+      'like_new': 40,
+      'good': 25,
+      'fair': 15
+    };
+    return pointsMap[condition] || 20;
   }
 }
 

@@ -3,23 +3,23 @@ import React from 'react';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { useNavigate, Link } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { useTranslation } from 'react-i18next';
 import { Eye, EyeOff, User, Mail, Phone, MapPin } from 'lucide-react';
-import { loginSuccess } from '../store/slices/authSlice';
+import { signupUser } from '../store/slices/authSlice';
 import { ROUTES } from '../config/constants';
-import authService from '../services/authService';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
+import { RootState, AppDispatch } from '../store';
 
 const SignupPage: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
+  const { loading, error } = useSelector((state: RootState) => state.auth);
   const [showPassword, setShowPassword] = React.useState(false);
-  const [isLoading, setIsLoading] = React.useState(false);
 
   const validationSchema = Yup.object({
     name: Yup.string()
@@ -31,8 +31,8 @@ const SignupPage: React.FC = () => {
     password: Yup.string()
       .min(6, t('auth.passwordMin'))
       .required(t('auth.passwordRequired')),
-    phone: Yup.string()
-      .matches(/^[0-9]{10}$/, t('auth.phoneInvalid'))
+    phone_number: Yup.string()
+      .matches(/^[+]?[0-9]{10,15}$/, t('auth.phoneInvalid'))
       .required(t('auth.phoneRequired')),
     address: Yup.string()
       .min(5, t('auth.addressMin'))
@@ -44,20 +44,17 @@ const SignupPage: React.FC = () => {
       name: '',
       email: '',
       password: '',
-      phone: '',
+      phone_number: '',
       address: ''
     },
     validationSchema,
     onSubmit: async (values) => {
-      setIsLoading(true);
       try {
-        const response = await authService.signup(values);
-        dispatch(loginSuccess(response.user));
+        await dispatch(signupUser(values)).unwrap();
         navigate(ROUTES.DASHBOARD);
       } catch (error) {
+        // Error is handled by the thunk and toast
         console.error('Signup failed:', error);
-      } finally {
-        setIsLoading(false);
       }
     }
   });
@@ -83,6 +80,12 @@ const SignupPage: React.FC = () => {
           </p>
         </CardHeader>
         <CardContent className="space-y-4">
+          {error && (
+            <div className="p-3 rounded-lg bg-red-100 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 text-sm">
+              {error}
+            </div>
+          )}
+
           <Button
             variant="outline"
             className="w-full"
@@ -173,19 +176,19 @@ const SignupPage: React.FC = () => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="phone" className="flex items-center space-x-2">
+              <Label htmlFor="phone_number" className="flex items-center space-x-2">
                 <Phone className="h-4 w-4" />
                 <span>{t('auth.phone')}</span>
               </Label>
               <Input
-                id="phone"
+                id="phone_number"
                 type="tel"
                 placeholder={t('auth.phonePlaceholder')}
-                {...formik.getFieldProps('phone')}
-                className={formik.touched.phone && formik.errors.phone ? 'border-red-500' : ''}
+                {...formik.getFieldProps('phone_number')}
+                className={formik.touched.phone_number && formik.errors.phone_number ? 'border-red-500' : ''}
               />
-              {formik.touched.phone && formik.errors.phone && (
-                <p className="text-sm text-red-500">{formik.errors.phone}</p>
+              {formik.touched.phone_number && formik.errors.phone_number && (
+                <p className="text-sm text-red-500">{formik.errors.phone_number}</p>
               )}
             </div>
 
@@ -209,9 +212,9 @@ const SignupPage: React.FC = () => {
             <Button
               type="submit"
               className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
-              disabled={isLoading}
+              disabled={loading}
             >
-              {isLoading ? t('common.loading') : t('auth.signup')}
+              {loading ? t('common.loading') : t('auth.signup')}
             </Button>
           </form>
 

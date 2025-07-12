@@ -1,14 +1,15 @@
-
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useTranslation } from 'react-i18next';
 import { Check, X, Trash2, Eye, AlertTriangle, Package, Users, TrendingUp, Ban, ShoppingCart } from 'lucide-react';
-import { RootState } from '../store';
+import { RootState, AppDispatch } from '../store';
 import { setPendingItems } from '../store/slices/itemsSlice';
+import { fetchAllUsers, toggleUserStatus } from '../store/slices/adminSlice';
 import itemService from '../services/itemService';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
+import { Switch } from '../components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import {
   Table,
@@ -29,48 +30,17 @@ import {
 
 const AdminPanel: React.FC = () => {
   const { t } = useTranslation();
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
   
   const { user } = useSelector((state: RootState) => state.auth);
   const { pendingItems } = useSelector((state: RootState) => state.items);
+  const { users, loading: usersLoading } = useSelector((state: RootState) => state.admin);
   
   const [selectedItem, setSelectedItem] = useState<any>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [toggleLoading, setToggleLoading] = useState<string | null>(null);
 
-  // Mock data for users and orders
-  const mockUsers = [
-    {
-      id: '1',
-      name: 'John Doe',
-      email: 'john@example.com',
-      phone: '+1234567890',
-      joinDate: '2024-01-15',
-      status: 'active',
-      itemsListed: 5,
-      totalPurchases: 12
-    },
-    {
-      id: '2',
-      name: 'Jane Smith',
-      email: 'jane@example.com',
-      phone: '+1234567891',
-      joinDate: '2024-01-10',
-      status: 'active',
-      itemsListed: 8,
-      totalPurchases: 6
-    },
-    {
-      id: '3',
-      name: 'Mike Johnson',
-      email: 'mike@example.com',
-      phone: '+1234567892',
-      joinDate: '2024-01-08',
-      status: 'blocked',
-      itemsListed: 2,
-      totalPurchases: 1
-    }
-  ];
-
+  // Mock data for orders
   const mockOrders = [
     {
       id: 'ORD001',
@@ -102,16 +72,20 @@ const AdminPanel: React.FC = () => {
   ];
 
   useEffect(() => {
-    const loadPendingItems = async () => {
+    const loadData = async () => {
       try {
+        // Load pending items
         const items = await itemService.getPendingItems();
         dispatch(setPendingItems(items));
+        
+        // Load users for admin panel
+        dispatch(fetchAllUsers());
       } catch (error) {
-        console.error('Failed to load pending items:', error);
+        console.error('Failed to load admin data:', error);
       }
     };
 
-    loadPendingItems();
+    loadData();
   }, [dispatch]);
 
   const handleApprove = async (itemId: string) => {
@@ -139,8 +113,15 @@ const AdminPanel: React.FC = () => {
     setIsDialogOpen(true);
   };
 
-  const handleUserAction = (userId: string, action: 'block' | 'unblock' | 'delete') => {
-    console.log(`${action} user:`, userId);
+  const handleUserStatusToggle = async (userId: string, currentStatus: boolean) => {
+    setToggleLoading(userId);
+    try {
+      await dispatch(toggleUserStatus({ userId, isEnabled: !currentStatus })).unwrap();
+    } catch (error) {
+      console.error('Failed to toggle user status:', error);
+    } finally {
+      setToggleLoading(null);
+    }
   };
 
   const stats = [
@@ -158,7 +139,7 @@ const AdminPanel: React.FC = () => {
     },
     {
       title: t('admin.stats.activeUsers'),
-      value: 1250,
+      value: users.filter(u => u.is_enabled).length,
       icon: <Users className="h-6 w-6 text-green-500" />,
       color: 'text-green-500'
     },
@@ -185,10 +166,6 @@ const AdminPanel: React.FC = () => {
         return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300';
       case 'pending':
         return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300';
-      case 'active':
-        return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300';
-      case 'blocked':
-        return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300';
       default:
         return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300';
     }
@@ -362,86 +339,76 @@ const AdminPanel: React.FC = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>{t('admin.table.user')}</TableHead>
-                      <TableHead>{t('admin.table.contact')}</TableHead>
-                      <TableHead>{t('admin.table.joined')}</TableHead>
-                      <TableHead>{t('admin.table.items')}</TableHead>
-                      <TableHead>{t('admin.table.purchases')}</TableHead>
-                      <TableHead>{t('admin.table.status')}</TableHead>
-                      <TableHead>{t('admin.table.actions')}</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {mockUsers.map((user) => (
-                      <TableRow key={user.id}>
-                        <TableCell>
-                          <div className="flex items-center space-x-3">
-                            <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-medium">
-                              {user.name.charAt(0)}
-                            </div>
-                            <div>
-                              <p className="font-medium text-foreground">{user.name}</p>
-                              <p className="text-sm text-muted-foreground">{user.email}</p>
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <p className="text-sm">{user.phone}</p>
-                        </TableCell>
-                        <TableCell>
-                          <span className="text-sm text-muted-foreground">
-                            {new Date(user.joinDate).toLocaleDateString()}
-                          </span>
-                        </TableCell>
-                        <TableCell>
-                          <span className="font-medium">{user.itemsListed}</span>
-                        </TableCell>
-                        <TableCell>
-                          <span className="font-medium">{user.totalPurchases}</span>
-                        </TableCell>
-                        <TableCell>
-                          <Badge className={getStatusColor(user.status)}>
-                            {user.status}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center space-x-2">
-                            {user.status === 'active' ? (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleUserAction(user.id, 'block')}
-                                className="p-2 text-orange-600 hover:text-orange-700 hover:bg-orange-100 dark:hover:bg-orange-900"
-                              >
-                                <Ban className="h-4 w-4" />
-                              </Button>
-                            ) : (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleUserAction(user.id, 'unblock')}
-                                className="p-2 text-green-600 hover:text-green-700 hover:bg-green-100 dark:hover:bg-green-900"
-                              >
-                                <Check className="h-4 w-4" />
-                              </Button>
-                            )}
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleUserAction(user.id, 'delete')}
-                              className="p-2 text-red-600 hover:text-red-700 hover:bg-red-100 dark:hover:bg-red-900"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </TableCell>
+                {usersLoading ? (
+                  <div className="text-center py-8">Loading users...</div>
+                ) : (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>{t('admin.table.user')}</TableHead>
+                        <TableHead>{t('admin.table.contact')}</TableHead>
+                        <TableHead>{t('admin.table.joined')}</TableHead>
+                        <TableHead>{t('admin.table.items')}</TableHead>
+                        <TableHead>{t('admin.table.purchases')}</TableHead>
+                        <TableHead>{t('admin.table.status')}</TableHead>
+                        <TableHead>{t('admin.table.actions')}</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                    </TableHeader>
+                    <TableBody>
+                      {users.map((user) => (
+                        <TableRow key={user.id}>
+                          <TableCell>
+                            <div className="flex items-center space-x-3">
+                              <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-medium">
+                                {user.name.charAt(0)}
+                              </div>
+                              <div>
+                                <p className="font-medium text-foreground">{user.name}</p>
+                                <p className="text-sm text-muted-foreground">{user.email}</p>
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <p className="text-sm">{user.phone_number || 'N/A'}</p>
+                            <p className="text-xs text-muted-foreground">{user.address || 'N/A'}</p>
+                          </TableCell>
+                          <TableCell>
+                            <span className="text-sm text-muted-foreground">
+                              {new Date(user.created_at).toLocaleDateString()}
+                            </span>
+                          </TableCell>
+                          <TableCell>
+                            <span className="font-medium">{user.items_count}</span>
+                          </TableCell>
+                          <TableCell>
+                            <span className="font-medium">{user.purchases_count}</span>
+                          </TableCell>
+                          <TableCell>
+                            <Badge className={user.is_enabled ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300' : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300'}>
+                              {user.is_enabled ? 'Active' : 'Disabled'}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center space-x-3">
+                              <Switch
+                                checked={user.is_enabled}
+                                onCheckedChange={() => handleUserStatusToggle(user.id, user.is_enabled)}
+                                disabled={toggleLoading === user.id}
+                              />
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="p-2 text-red-600 hover:text-red-700 hover:bg-red-100 dark:hover:bg-red-900"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
