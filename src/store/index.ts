@@ -5,6 +5,7 @@ import themeSlice from './slices/themeSlice';
 import languageSlice from './slices/languageSlice';
 import itemsSlice from './slices/itemsSlice';
 import adminSlice from './slices/adminSlice';
+import swapSlice from './slices/swapSlice';
 
 export const store = configureStore({
   reducer: {
@@ -12,7 +13,8 @@ export const store = configureStore({
     theme: themeSlice,
     language: languageSlice,
     items: itemsSlice,
-    admin: adminSlice
+    admin: adminSlice,
+    swap: swapSlice
   }
 });
 

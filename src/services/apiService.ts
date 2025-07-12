@@ -122,6 +122,29 @@ export const itemsAPI = {
   }
 };
 
+// Swap APIs
+export const swapAPI = {
+  requestSwap: async (data: { offered_item_id: string; requested_item_id: string }) => {
+    const response = await api.post('/api/swap/request', data);
+    return response.data;
+  },
+
+  getMyRequests: async () => {
+    const response = await api.get('/api/swap/my-requests');
+    return response.data;
+  },
+
+  getReceivedRequests: async () => {
+    const response = await api.get('/api/swap/received-requests');
+    return response.data;
+  },
+
+  respondToSwap: async (id: string, status: 'accepted' | 'rejected') => {
+    const response = await api.patch(`/api/swap/respond/${id}`, { status });
+    return response.data;
+  }
+};
+
 // Admin APIs
 export const adminAPI = {
   getAllUsers: async () => {
