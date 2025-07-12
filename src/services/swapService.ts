@@ -25,7 +25,8 @@ class SwapService {
     } catch (error: any) {
       const message = error.response?.data?.message || 'Failed to load your swap requests';
       toast.error(message);
-      throw error;
+      console.error('Failed to load swap requests:', error);
+      return [];
     }
   }
 
@@ -36,7 +37,8 @@ class SwapService {
     } catch (error: any) {
       const message = error.response?.data?.message || 'Failed to load received swap requests';
       toast.error(message);
-      throw error;
+      console.error('Failed to load received requests:', error);
+      return [];
     }
   }
 

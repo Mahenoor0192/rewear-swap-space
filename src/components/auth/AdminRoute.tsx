@@ -1,15 +1,35 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
-import { useSelector } from 'react-redux';
-import { RootState } from '../../store';
+import { useSelector, useDispatch } from 'react-redux';
+import { RootState, AppDispatch } from '../../store';
+import { loginSuccess, loginFailure } from '../../store/slices/authSlice';
+import authService from '../../services/authService';
 
 interface AdminRouteProps {
   children: React.ReactNode;
 }
 
 const AdminRoute: React.FC<AdminRouteProps> = ({ children }) => {
+  const dispatch = useDispatch<AppDispatch>();
   const { user, isAuthenticated, loading } = useSelector((state: RootState) => state.auth);
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      const token = localStorage.getItem('authToken');
+      if (token && !user) {
+        try {
+          const profile = await authService.getProfile();
+          dispatch(loginSuccess(profile.user));
+        } catch (error) {
+          localStorage.removeItem('authToken');
+          dispatch(loginFailure('Session expired'));
+        }
+      }
+    };
+
+    checkAuth();
+  }, [dispatch, user]);
 
   if (loading) {
     return (
@@ -19,7 +39,7 @@ const AdminRoute: React.FC<AdminRouteProps> = ({ children }) => {
     );
   }
 
-  if (!isAuthenticated) {
+  if (!isAuthenticated || !localStorage.getItem('authToken')) {
     return <Navigate to="/login" replace />;
   }
 

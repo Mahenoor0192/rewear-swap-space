@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
@@ -16,13 +15,15 @@ import { Textarea } from '../components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
+import { toast } from 'sonner';
 
 const AddItemPage: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const [isLoading, setIsLoading] = useState(false);
-  const [selectedImages, setSelectedImages] = useState<string[]>([]);
+  const [selectedImages, setSelectedImages] = useState<File[]>([]);
+  const [imagePreview, setImagePreview] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState('');
 
   const validationSchema = Yup.object({
@@ -49,16 +50,21 @@ const AddItemPage: React.FC = () => {
     },
     validationSchema,
     onSubmit: async (values) => {
+      if (selectedImages.length === 0) {
+        toast.error('Please add at least one image');
+        return;
+      }
+
       setIsLoading(true);
       try {
-        // Calculate points based on condition and category
-        const basePoints = 20;
+        // Calculate points based on condition
         const conditionMultiplier = {
           new: 1.5,
           like_new: 1.3,
           good: 1.0,
           fair: 0.8
         };
+        const basePoints = 20;
         const points = Math.round(basePoints * conditionMultiplier[values.condition as keyof typeof conditionMultiplier]);
 
         const itemData: CreateItemData = {
@@ -69,9 +75,11 @@ const AddItemPage: React.FC = () => {
 
         const newItem = await itemService.createItem(itemData);
         dispatch(addItem(newItem));
+        toast.success('Item listed successfully!');
         navigate(ROUTES.DASHBOARD);
-      } catch (error) {
+      } catch (error: any) {
         console.error('Failed to create item:', error);
+        toast.error(error.response?.data?.message || 'Failed to create item');
       } finally {
         setIsLoading(false);
       }
@@ -81,18 +89,30 @@ const AddItemPage: React.FC = () => {
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
     if (files) {
-      const newImages: string[] = [];
+      const newFiles: File[] = [];
+      const newPreviews: string[] = [];
+      
       for (let i = 0; i < Math.min(files.length, 5 - selectedImages.length); i++) {
         const file = files[i];
+        newFiles.push(file);
         const imageUrl = URL.createObjectURL(file);
-        newImages.push(imageUrl);
+        newPreviews.push(imageUrl);
       }
-      setSelectedImages([...selectedImages, ...newImages]);
+      
+      setSelectedImages([...selectedImages, ...newFiles]);
+      setImagePreview([...imagePreview, ...newPreviews]);
     }
   };
 
   const removeImage = (index: number) => {
-    setSelectedImages(selectedImages.filter((_, i) => i !== index));
+    const newImages = selectedImages.filter((_, i) => i !== index);
+    const newPreviews = imagePreview.filter((_, i) => i !== index);
+    
+    // Revoke the URL to prevent memory leaks
+    URL.revokeObjectURL(imagePreview[index]);
+    
+    setSelectedImages(newImages);
+    setImagePreview(newPreviews);
   };
 
   const addTag = () => {
@@ -149,9 +169,9 @@ const AddItemPage: React.FC = () => {
               <form onSubmit={formik.handleSubmit} className="space-y-6">
                 {/* Images Upload */}
                 <div className="space-y-2">
-                  <Label>Images (Max 5)</Label>
+                  <Label>Images (Max 5) *</Label>
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                    {selectedImages.map((image, index) => (
+                    {imagePreview.map((image, index) => (
                       <div key={index} className="relative aspect-square">
                         <img
                           src={image}
@@ -185,6 +205,9 @@ const AddItemPage: React.FC = () => {
                       </label>
                     )}
                   </div>
+                  {selectedImages.length === 0 && (
+                    <p className="text-sm text-red-500">At least one image is required</p>
+                  )}
                 </div>
 
                 {/* Title */}

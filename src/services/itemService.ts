@@ -9,7 +9,7 @@ export interface CreateItemData {
   size: string;
   condition: string;
   tags: string[];
-  images: string[];
+  images: File[];
   points: number;
 }
 
@@ -37,14 +37,15 @@ class ItemService {
     }
   }
 
-  async getUserItems(userId: string) {
+  async getUserItems(userId?: string) {
     try {
       const response = await itemsAPI.getMyItems();
       return response.items?.filter((item: any) => item.isAvailable) || [];
     } catch (error: any) {
       const message = error.response?.data?.message || 'Failed to load your items';
       toast.error(message);
-      throw error;
+      console.error('Failed to load user items:', error);
+      return [];
     }
   }
 
@@ -57,8 +58,10 @@ class ItemService {
       formData.append('size', itemData.size);
       formData.append('condition', itemData.condition);
       formData.append('tags', JSON.stringify(itemData.tags));
+      formData.append('points', itemData.points.toString());
       
-      itemData.images.forEach((image) => {
+      // Append each image file
+      itemData.images.forEach((image, index) => {
         formData.append('images', image);
       });
 
@@ -79,6 +82,7 @@ class ItemService {
     } catch (error: any) {
       const message = error.response?.data?.message || 'Failed to load pending items';
       toast.error(message);
+      console.error('Failed to load pending items:', error);
       return [];
     }
   }
@@ -114,16 +118,6 @@ class ItemService {
       toast.error(message);
       throw error;
     }
-  }
-
-  private calculatePoints(condition: string): number {
-    const pointsMap: { [key: string]: number } = {
-      'new': 50,
-      'like_new': 40,
-      'good': 25,
-      'fair': 15
-    };
-    return pointsMap[condition] || 20;
   }
 }
 
