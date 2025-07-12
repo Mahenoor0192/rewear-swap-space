@@ -14,6 +14,7 @@ import { Button } from '../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
+import { useToast } from '@/hooks/use-toast';
 
 interface LoginFormValues {
   email: string;
@@ -24,6 +25,7 @@ const LoginPage: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const { toast } = useToast();
   
   const { loading, error } = useSelector((state: RootState) => state.auth);
   const [showPassword, setShowPassword] = React.useState(false);
@@ -46,6 +48,11 @@ const LoginPage: React.FC = () => {
       dispatch(loginSuccess(response.user));
       localStorage.setItem('authToken', response.token);
       
+      toast({
+        title: "Login Successful",
+        description: `Welcome back, ${response.user.name}!`,
+      });
+      
       // Navigate based on user type
       if (response.user.userType === USER_TYPES.ADMIN) {
         navigate(ROUTES.ADMIN_PANEL);
@@ -54,6 +61,11 @@ const LoginPage: React.FC = () => {
       }
     } catch (error: any) {
       dispatch(loginFailure(error.message || 'Login failed'));
+      toast({
+        title: "Login Failed",
+        description: error.message || 'Invalid credentials',
+        variant: "destructive",
+      });
     }
   };
 
@@ -158,14 +170,6 @@ const LoginPage: React.FC = () => {
                 </Form>
               )}
             </Formik>
-
-            <div className="mt-6 p-4 bg-muted/30 rounded-lg">
-              <p className="text-sm text-muted-foreground mb-2">Demo Credentials:</p>
-              <div className="space-y-1 text-xs">
-                <p><strong>User:</strong> user@rewear.com / password123</p>
-                <p><strong>Admin:</strong> admin@rewear.com / password123</p>
-              </div>
-            </div>
           </CardContent>
         </Card>
       </div>

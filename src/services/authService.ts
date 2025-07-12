@@ -35,7 +35,7 @@ class AuthService {
       // Dummy implementation for demo
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      if (credentials.email === 'admin@rewear.com' && credentials.password === 'password') {
+      if (credentials.email === 'admin@rewear.com' && credentials.password === 'password123') {
         return {
           user: {
             id: '1',
@@ -47,7 +47,7 @@ class AuthService {
           },
           token: 'dummy-admin-token'
         };
-      } else if (credentials.email === 'user@rewear.com' && credentials.password === 'password') {
+      } else if (credentials.email === 'user@rewear.com' && credentials.password === 'password123') {
         return {
           user: {
             id: '2',
@@ -58,6 +58,30 @@ class AuthService {
             points: 150
           },
           token: 'dummy-user-token'
+        };
+      } else if (credentials.email === 'sarah@rewear.com' && credentials.password === 'password123') {
+        return {
+          user: {
+            id: '3',
+            name: 'Sarah Wilson',
+            email: credentials.email,
+            userType: 'user',
+            avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&q=80',
+            points: 275
+          },
+          token: 'dummy-sarah-token'
+        };
+      } else if (credentials.email === 'mike@rewear.com' && credentials.password === 'password123') {
+        return {
+          user: {
+            id: '4',
+            name: 'Mike Johnson',
+            email: credentials.email,
+            userType: 'user',
+            avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&q=80',
+            points: 95
+          },
+          token: 'dummy-mike-token'
         };
       } else {
         throw new Error('Invalid credentials');
