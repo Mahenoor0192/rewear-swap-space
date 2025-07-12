@@ -39,6 +39,11 @@ export const STORAGE_KEYS = {
   LANGUAGE: 'rewear_language'
 } as const;
 
+export const USER_TYPES = {
+  USER: 'user',
+  ADMIN: 'admin'
+} as const;
+
 export const ITEM_CONDITIONS = [
   { value: 'new', label: 'New with tags' },
   { value: 'like_new', label: 'Like new' },
