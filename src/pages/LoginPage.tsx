@@ -14,7 +14,7 @@ import { Button } from '../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '../hooks/use-toast';
 
 interface LoginFormValues {
   email: string;
@@ -40,10 +40,12 @@ const LoginPage: React.FC = () => {
   });
 
   const handleSubmit = async (values: LoginFormValues) => {
+    console.log('Form submitted with values:', values);
     dispatch(loginStart());
     
     try {
       const response = await authService.login(values);
+      console.log('Login response:', response);
       
       dispatch(loginSuccess(response.user));
       localStorage.setItem('authToken', response.token);
@@ -60,6 +62,7 @@ const LoginPage: React.FC = () => {
         navigate(ROUTES.DASHBOARD);
       }
     } catch (error: any) {
+      console.error('Login error:', error);
       dispatch(loginFailure(error.message || 'Login failed'));
       toast({
         title: "Login Failed",
@@ -85,6 +88,11 @@ const LoginPage: React.FC = () => {
             <p className="text-muted-foreground">
               Sign in to start your sustainable fashion journey
             </p>
+            <div className="text-xs text-muted-foreground bg-muted/30 p-3 rounded-lg">
+              <p className="font-medium mb-2">Demo Credentials:</p>
+              <p>Admin: admin@rewear.com / password123</p>
+              <p>User: user@rewear.com / password123</p>
+            </div>
           </CardHeader>
 
           <CardContent>

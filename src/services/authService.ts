@@ -1,4 +1,3 @@
-
 import api from './api';
 
 interface LoginCredentials {
@@ -29,13 +28,13 @@ interface AuthResponse {
 class AuthService {
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
     try {
-      // const response = await api.post('/auth/login', credentials);
-      // return response.data;
-
+      console.log('Login attempt with:', credentials);
+      
       // Dummy implementation for demo
       await new Promise(resolve => setTimeout(resolve, 1000));
       
       if (credentials.email === 'admin@rewear.com' && credentials.password === 'password123') {
+        console.log('Admin login successful');
         return {
           user: {
             id: '1',
@@ -48,6 +47,7 @@ class AuthService {
           token: 'dummy-admin-token'
         };
       } else if (credentials.email === 'user@rewear.com' && credentials.password === 'password123') {
+        console.log('User login successful');
         return {
           user: {
             id: '2',
@@ -60,6 +60,7 @@ class AuthService {
           token: 'dummy-user-token'
         };
       } else if (credentials.email === 'sarah@rewear.com' && credentials.password === 'password123') {
+        console.log('Sarah login successful');
         return {
           user: {
             id: '3',
@@ -72,6 +73,7 @@ class AuthService {
           token: 'dummy-sarah-token'
         };
       } else if (credentials.email === 'mike@rewear.com' && credentials.password === 'password123') {
+        console.log('Mike login successful');
         return {
           user: {
             id: '4',
@@ -84,9 +86,11 @@ class AuthService {
           token: 'dummy-mike-token'
         };
       } else {
+        console.log('Login failed - Invalid credentials for:', credentials.email);
         throw new Error('Invalid credentials');
       }
     } catch (error) {
+      console.error('Auth service error:', error);
       throw error;
     }
   }
