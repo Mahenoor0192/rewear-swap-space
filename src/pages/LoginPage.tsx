@@ -1,6 +1,5 @@
-
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { useTranslation } from 'react-i18next';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
@@ -14,6 +13,7 @@ import { Button } from '../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
+import { useToast } from '../hooks/use-toast';
 
 interface LoginFormValues {
   email: string;
@@ -24,6 +24,7 @@ const LoginPage: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const { toast } = useToast();
   
   const { loading, error } = useSelector((state: RootState) => state.auth);
   const [showPassword, setShowPassword] = React.useState(false);
@@ -38,13 +39,20 @@ const LoginPage: React.FC = () => {
   });
 
   const handleSubmit = async (values: LoginFormValues) => {
+    console.log('Form submitted with values:', values);
     dispatch(loginStart());
     
     try {
       const response = await authService.login(values);
+      console.log('Login response:', response);
       
       dispatch(loginSuccess(response.user));
       localStorage.setItem('authToken', response.token);
+      
+      toast({
+        title: "Login Successful",
+        description: `Welcome back, ${response.user.name}!`,
+      });
       
       // Navigate based on user type
       if (response.user.userType === USER_TYPES.ADMIN) {
@@ -53,7 +61,13 @@ const LoginPage: React.FC = () => {
         navigate(ROUTES.DASHBOARD);
       }
     } catch (error: any) {
+      console.error('Login error:', error);
       dispatch(loginFailure(error.message || 'Login failed'));
+      toast({
+        title: "Login Failed",
+        description: error.message || 'Invalid credentials',
+        variant: "destructive",
+      });
     }
   };
 
@@ -159,12 +173,14 @@ const LoginPage: React.FC = () => {
               )}
             </Formik>
 
-            <div className="mt-6 p-4 bg-muted/30 rounded-lg">
-              <p className="text-sm text-muted-foreground mb-2">Demo Credentials:</p>
-              <div className="space-y-1 text-xs">
-                <p><strong>User:</strong> user@rewear.com / password123</p>
-                <p><strong>Admin:</strong> admin@rewear.com / password123</p>
-              </div>
+            <div className="text-center text-sm mt-6">
+              <span className="text-muted-foreground">Don't have an account? </span>
+              <Link
+                to={ROUTES.SIGNUP}
+                className="text-primary hover:underline font-medium"
+              >
+                Sign up
+              </Link>
             </div>
           </CardContent>
         </Card>
