@@ -6,7 +6,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { useTranslation } from 'react-i18next';
 import { Eye, EyeOff, User, Mail, Phone, MapPin } from 'lucide-react';
-import { setAuth } from '../store/slices/authSlice';
+import { loginSuccess } from '../store/slices/authSlice';
 import { ROUTES } from '../config/constants';
 import authService from '../services/authService';
 import { Button } from '../components/ui/button';
@@ -52,7 +52,7 @@ const SignupPage: React.FC = () => {
       setIsLoading(true);
       try {
         const response = await authService.signup(values);
-        dispatch(setAuth(response));
+        dispatch(loginSuccess(response.user));
         navigate(ROUTES.DASHBOARD);
       } catch (error) {
         console.error('Signup failed:', error);
