@@ -3,25 +3,27 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 interface SwapRequest {
   id: string;
-  offered_item_id: string;
-  requested_item_id: string;
   offered_item: {
     id: string;
     title: string;
     images: string[];
+    points: number;
   };
   requested_item: {
     id: string;
     title: string;
     images: string[];
+    points: number;
   };
   requester: {
     id: string;
     name: string;
+    email: string;
   };
   receiver: {
     id: string;
     name: string;
+    email: string;
   };
   status: 'pending' | 'accepted' | 'rejected' | 'completed';
   created_at: string;
