@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
@@ -88,11 +87,6 @@ const LoginPage: React.FC = () => {
             <p className="text-muted-foreground">
               Sign in to start your sustainable fashion journey
             </p>
-            <div className="text-xs text-muted-foreground bg-muted/30 p-3 rounded-lg">
-              <p className="font-medium mb-2">Demo Credentials:</p>
-              <p>Admin: admin@rewear.com / password123</p>
-              <p>User: user@rewear.com / password123</p>
-            </div>
           </CardHeader>
 
           <CardContent>
