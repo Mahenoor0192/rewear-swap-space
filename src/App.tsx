@@ -17,9 +17,11 @@ import Header from './components/layout/Header';
 // Pages
 import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
+import SignupPage from './pages/SignupPage';
 import Dashboard from './pages/Dashboard';
 import ItemDetailsPage from './pages/ItemDetailsPage';
 import AddItemPage from './pages/AddItemPage';
+import ProfilePage from './pages/ProfilePage';
 import AdminPanel from './pages/AdminPanel';
 import NotFound from './pages/NotFound';
 
@@ -79,11 +81,20 @@ const AppRoutes: React.FC = () => {
       } />
       
       <Route path={ROUTES.LOGIN} element={<LoginPage />} />
+      <Route path="/signup" element={<SignupPage />} />
       
       <Route path={ROUTES.DASHBOARD} element={
         <ProtectedRoute>
           <AppLayout>
             <Dashboard />
+          </AppLayout>
+        </ProtectedRoute>
+      } />
+      
+      <Route path="/profile" element={
+        <ProtectedRoute>
+          <AppLayout>
+            <ProfilePage />
           </AppLayout>
         </ProtectedRoute>
       } />

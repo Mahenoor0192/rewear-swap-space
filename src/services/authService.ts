@@ -1,66 +1,132 @@
 
 import api from './api';
 
-export interface LoginCredentials {
+interface LoginCredentials {
   email: string;
   password: string;
 }
 
-export interface LoginResponse {
+interface SignupData {
+  name: string;
+  email: string;
+  password: string;
+  phone: string;
+  address: string;
+}
+
+interface AuthResponse {
   user: {
     id: string;
-    email: string;
     name: string;
-    userType: 'admin' | 'user';
-    points: number;
+    email: string;
+    userType: 'user' | 'admin';
     avatar?: string;
+    points: number;
   };
   token: string;
 }
 
 class AuthService {
-  async login(credentials: LoginCredentials): Promise<LoginResponse> {
+  async login(credentials: LoginCredentials): Promise<AuthResponse> {
     try {
-      // Commented out actual API call for demo purposes
       // const response = await api.post('/auth/login', credentials);
       // return response.data;
 
-      // Dummy response for demo
-      const dummyResponse: LoginResponse = {
-        user: {
-          id: '1',
-          email: credentials.email,
-          name: credentials.email.includes('admin') ? 'Admin User' : 'John Doe',
-          userType: credentials.email.includes('admin') ? 'admin' : 'user',
-          points: credentials.email.includes('admin') ? 0 : 150,
-          avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80'
-        },
-        token: 'dummy-jwt-token'
-      };
-
-      // Simulate API delay
+      // Dummy implementation for demo
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      return dummyResponse;
+      if (credentials.email === 'admin@rewear.com' && credentials.password === 'password') {
+        return {
+          user: {
+            id: '1',
+            name: 'Admin User',
+            email: credentials.email,
+            userType: 'admin',
+            avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&q=80',
+            points: 0
+          },
+          token: 'dummy-admin-token'
+        };
+      } else if (credentials.email === 'user@rewear.com' && credentials.password === 'password') {
+        return {
+          user: {
+            id: '2',
+            name: 'John Doe',
+            email: credentials.email,
+            userType: 'user',
+            avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&q=80',
+            points: 150
+          },
+          token: 'dummy-user-token'
+        };
+      } else {
+        throw new Error('Invalid credentials');
+      }
     } catch (error) {
-      throw new Error('Login failed. Please check your credentials.');
+      throw error;
+    }
+  }
+
+  async signup(signupData: SignupData): Promise<AuthResponse> {
+    try {
+      // const response = await api.post('/auth/signup', signupData);
+      // return response.data;
+
+      // Dummy implementation for demo
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      return {
+        user: {
+          id: Date.now().toString(),
+          name: signupData.name,
+          email: signupData.email,
+          userType: 'user',
+          points: 50 // Welcome bonus
+        },
+        token: 'dummy-new-user-token'
+      };
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async signupWithGoogle(): Promise<AuthResponse> {
+    try {
+      // Implementation for Google signup
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      return {
+        user: {
+          id: Date.now().toString(),
+          name: 'Google User',
+          email: 'google.user@gmail.com',
+          userType: 'user',
+          avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&q=80',
+          points: 50
+        },
+        token: 'dummy-google-token'
+      };
+    } catch (error) {
+      throw error;
     }
   }
 
   async logout(): Promise<void> {
     try {
       // await api.post('/auth/logout');
-      localStorage.removeItem('authToken');
+      console.log('User logged out');
     } catch (error) {
-      console.error('Logout error:', error);
+      throw error;
     }
   }
 
-  async getCurrentUser() {
+  async refreshToken(): Promise<AuthResponse> {
     try {
-      // const response = await api.get('/auth/me');
+      // const response = await api.post('/auth/refresh');
       // return response.data;
-      return null;
+      
+      // Dummy implementation
+      throw new Error('Token refresh not implemented');
     } catch (error) {
       throw error;
     }

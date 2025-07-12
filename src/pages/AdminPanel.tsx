@@ -2,13 +2,14 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useTranslation } from 'react-i18next';
-import { Check, X, Trash2, Eye, AlertTriangle, Package, Users, TrendingUp } from 'lucide-react';
+import { Check, X, Trash2, Eye, AlertTriangle, Package, Users, TrendingUp, Ban, ShoppingCart } from 'lucide-react';
 import { RootState } from '../store';
 import { setPendingItems } from '../store/slices/itemsSlice';
 import itemService from '../services/itemService';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import {
   Table,
   TableBody,
@@ -36,6 +37,70 @@ const AdminPanel: React.FC = () => {
   const [selectedItem, setSelectedItem] = useState<any>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
+  // Mock data for users and orders
+  const mockUsers = [
+    {
+      id: '1',
+      name: 'John Doe',
+      email: 'john@example.com',
+      phone: '+1234567890',
+      joinDate: '2024-01-15',
+      status: 'active',
+      itemsListed: 5,
+      totalPurchases: 12
+    },
+    {
+      id: '2',
+      name: 'Jane Smith',
+      email: 'jane@example.com',
+      phone: '+1234567891',
+      joinDate: '2024-01-10',
+      status: 'active',
+      itemsListed: 8,
+      totalPurchases: 6
+    },
+    {
+      id: '3',
+      name: 'Mike Johnson',
+      email: 'mike@example.com',
+      phone: '+1234567892',
+      joinDate: '2024-01-08',
+      status: 'blocked',
+      itemsListed: 2,
+      totalPurchases: 1
+    }
+  ];
+
+  const mockOrders = [
+    {
+      id: 'ORD001',
+      buyer: 'John Doe',
+      seller: 'Jane Smith',
+      item: 'Vintage Denim Jacket',
+      points: 45,
+      date: '2024-01-15',
+      status: 'completed'
+    },
+    {
+      id: 'ORD002',
+      buyer: 'Sarah Wilson',
+      seller: 'Mike Johnson',
+      item: 'Designer Handbag',
+      points: 60,
+      date: '2024-01-14',
+      status: 'in_progress'
+    },
+    {
+      id: 'ORD003',
+      buyer: 'Alex Chen',
+      seller: 'Emma Brown',
+      item: 'Leather Boots',
+      points: 35,
+      date: '2024-01-12',
+      status: 'pending'
+    }
+  ];
+
   useEffect(() => {
     const loadPendingItems = async () => {
       try {
@@ -52,7 +117,6 @@ const AdminPanel: React.FC = () => {
   const handleApprove = async (itemId: string) => {
     try {
       await itemService.approveItem(itemId);
-      // Reload pending items
       const items = await itemService.getPendingItems();
       dispatch(setPendingItems(items));
     } catch (error) {
@@ -63,7 +127,6 @@ const AdminPanel: React.FC = () => {
   const handleReject = async (itemId: string) => {
     try {
       await itemService.rejectItem(itemId);
-      // Reload pending items
       const items = await itemService.getPendingItems();
       dispatch(setPendingItems(items));
     } catch (error) {
@@ -76,27 +139,31 @@ const AdminPanel: React.FC = () => {
     setIsDialogOpen(true);
   };
 
+  const handleUserAction = (userId: string, action: 'block' | 'unblock' | 'delete') => {
+    console.log(`${action} user:`, userId);
+  };
+
   const stats = [
     {
-      title: 'Pending Reviews',
+      title: t('admin.stats.pendingReviews'),
       value: pendingItems.length,
       icon: <AlertTriangle className="h-6 w-6 text-orange-500" />,
       color: 'text-orange-500'
     },
     {
-      title: 'Total Items',
+      title: t('admin.stats.totalItems'),
       value: 145,
       icon: <Package className="h-6 w-6 text-blue-500" />,
       color: 'text-blue-500'
     },
     {
-      title: 'Active Users',
+      title: t('admin.stats.activeUsers'),
       value: 1250,
       icon: <Users className="h-6 w-6 text-green-500" />,
       color: 'text-green-500'
     },
     {
-      title: 'Success Rate',
+      title: t('admin.stats.successRate'),
       value: '95%',
       icon: <TrendingUp className="h-6 w-6 text-purple-500" />,
       color: 'text-purple-500'
@@ -110,16 +177,33 @@ const AdminPanel: React.FC = () => {
     fair: 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300'
   };
 
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'completed':
+        return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300';
+      case 'in_progress':
+        return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300';
+      case 'pending':
+        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300';
+      case 'active':
+        return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300';
+      case 'blocked':
+        return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300';
+      default:
+        return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300';
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-foreground mb-2">
-            Admin Panel
+            {t('admin.title')}
           </h1>
           <p className="text-muted-foreground">
-            Manage platform content and user submissions
+            {t('admin.subtitle')}
           </p>
         </div>
 
@@ -142,119 +226,284 @@ const AdminPanel: React.FC = () => {
           ))}
         </div>
 
-        {/* Pending Items Table */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-xl font-semibold flex items-center">
-              <AlertTriangle className="h-5 w-5 mr-2 text-orange-500" />
-              {t('admin.pendingListings')}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {pendingItems.length > 0 ? (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Item</TableHead>
-                    <TableHead>User</TableHead>
-                    <TableHead>Category</TableHead>
-                    <TableHead>Condition</TableHead>
-                    <TableHead>Points</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {pendingItems.map((item) => (
-                    <TableRow key={item.id}>
-                      <TableCell>
-                        <div className="flex items-center space-x-3">
-                          <img
-                            src={item.images[0]}
-                            alt={item.title}
-                            className="w-12 h-12 object-cover rounded-lg"
-                          />
-                          <div>
-                            <p className="font-medium text-foreground">{item.title}</p>
-                            <p className="text-sm text-muted-foreground line-clamp-1">
-                              {item.description}
-                            </p>
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center space-x-2">
-                          <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white text-sm font-medium">
-                            {item.userName.charAt(0)}
-                          </div>
-                          <span className="text-sm">{item.userName}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="secondary" className="capitalize">
-                          {item.category}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Badge className={`text-xs ${conditionColors[item.condition as keyof typeof conditionColors]}`}>
-                          {item.condition.replace('_', ' ')}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <span className="font-medium">{item.points} pts</span>
-                      </TableCell>
-                      <TableCell>
-                        <span className="text-sm text-muted-foreground">
-                          {new Date(item.createdAt).toLocaleDateString()}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center space-x-2">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleViewItem(item)}
-                            className="p-2"
-                          >
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleApprove(item.id)}
-                            className="p-2 text-green-600 hover:text-green-700 hover:bg-green-100 dark:hover:bg-green-900"
-                          >
-                            <Check className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleReject(item.id)}
-                            className="p-2 text-red-600 hover:text-red-700 hover:bg-red-100 dark:hover:bg-red-900"
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="p-2 text-red-600 hover:text-red-700 hover:bg-red-100 dark:hover:bg-red-900"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
+        {/* Tabbed Content */}
+        <Tabs defaultValue="listings" className="w-full">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="listings" className="flex items-center space-x-2">
+              <Package className="h-4 w-4" />
+              <span>{t('admin.tabs.listings')}</span>
+            </TabsTrigger>
+            <TabsTrigger value="users" className="flex items-center space-x-2">
+              <Users className="h-4 w-4" />
+              <span>{t('admin.tabs.users')}</span>
+            </TabsTrigger>
+            <TabsTrigger value="orders" className="flex items-center space-x-2">
+              <ShoppingCart className="h-4 w-4" />
+              <span>{t('admin.tabs.orders')}</span>
+            </TabsTrigger>
+          </TabsList>
+
+          {/* Manage Listings Tab */}
+          <TabsContent value="listings" className="mt-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-xl font-semibold flex items-center">
+                  <AlertTriangle className="h-5 w-5 mr-2 text-orange-500" />
+                  {t('admin.pendingListings')}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {pendingItems.length > 0 ? (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>{t('admin.table.item')}</TableHead>
+                        <TableHead>{t('admin.table.user')}</TableHead>
+                        <TableHead>{t('admin.table.category')}</TableHead>
+                        <TableHead>{t('admin.table.condition')}</TableHead>
+                        <TableHead>{t('admin.table.points')}</TableHead>
+                        <TableHead>{t('admin.table.date')}</TableHead>
+                        <TableHead>{t('admin.table.actions')}</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {pendingItems.map((item) => (
+                        <TableRow key={item.id}>
+                          <TableCell>
+                            <div className="flex items-center space-x-3">
+                              <img
+                                src={item.images[0]}
+                                alt={item.title}
+                                className="w-12 h-12 object-cover rounded-lg"
+                              />
+                              <div>
+                                <p className="font-medium text-foreground">{item.title}</p>
+                                <p className="text-sm text-muted-foreground line-clamp-1">
+                                  {item.description}
+                                </p>
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center space-x-2">
+                              <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white text-sm font-medium">
+                                {item.userName.charAt(0)}
+                              </div>
+                              <span className="text-sm">{item.userName}</span>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="secondary" className="capitalize">
+                              {item.category}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <Badge className={`text-xs ${conditionColors[item.condition as keyof typeof conditionColors]}`}>
+                              {item.condition.replace('_', ' ')}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <span className="font-medium">{item.points} pts</span>
+                          </TableCell>
+                          <TableCell>
+                            <span className="text-sm text-muted-foreground">
+                              {new Date(item.createdAt).toLocaleDateString()}
+                            </span>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center space-x-2">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleViewItem(item)}
+                                className="p-2"
+                              >
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleApprove(item.id)}
+                                className="p-2 text-green-600 hover:text-green-700 hover:bg-green-100 dark:hover:bg-green-900"
+                              >
+                                <Check className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleReject(item.id)}
+                                className="p-2 text-red-600 hover:text-red-700 hover:bg-red-100 dark:hover:bg-red-900"
+                              >
+                                <X className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                ) : (
+                  <div className="text-center py-8">
+                    <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                    <p className="text-muted-foreground">{t('admin.noPendingItems')}</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Manage Users Tab */}
+          <TabsContent value="users" className="mt-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-xl font-semibold flex items-center">
+                  <Users className="h-5 w-5 mr-2 text-blue-500" />
+                  {t('admin.manageUsers')}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>{t('admin.table.user')}</TableHead>
+                      <TableHead>{t('admin.table.contact')}</TableHead>
+                      <TableHead>{t('admin.table.joined')}</TableHead>
+                      <TableHead>{t('admin.table.items')}</TableHead>
+                      <TableHead>{t('admin.table.purchases')}</TableHead>
+                      <TableHead>{t('admin.table.status')}</TableHead>
+                      <TableHead>{t('admin.table.actions')}</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            ) : (
-              <div className="text-center py-8">
-                <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <p className="text-muted-foreground">No pending items to review</p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                  </TableHeader>
+                  <TableBody>
+                    {mockUsers.map((user) => (
+                      <TableRow key={user.id}>
+                        <TableCell>
+                          <div className="flex items-center space-x-3">
+                            <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-medium">
+                              {user.name.charAt(0)}
+                            </div>
+                            <div>
+                              <p className="font-medium text-foreground">{user.name}</p>
+                              <p className="text-sm text-muted-foreground">{user.email}</p>
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <p className="text-sm">{user.phone}</p>
+                        </TableCell>
+                        <TableCell>
+                          <span className="text-sm text-muted-foreground">
+                            {new Date(user.joinDate).toLocaleDateString()}
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          <span className="font-medium">{user.itemsListed}</span>
+                        </TableCell>
+                        <TableCell>
+                          <span className="font-medium">{user.totalPurchases}</span>
+                        </TableCell>
+                        <TableCell>
+                          <Badge className={getStatusColor(user.status)}>
+                            {user.status}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center space-x-2">
+                            {user.status === 'active' ? (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleUserAction(user.id, 'block')}
+                                className="p-2 text-orange-600 hover:text-orange-700 hover:bg-orange-100 dark:hover:bg-orange-900"
+                              >
+                                <Ban className="h-4 w-4" />
+                              </Button>
+                            ) : (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleUserAction(user.id, 'unblock')}
+                                className="p-2 text-green-600 hover:text-green-700 hover:bg-green-100 dark:hover:bg-green-900"
+                              >
+                                <Check className="h-4 w-4" />
+                              </Button>
+                            )}
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleUserAction(user.id, 'delete')}
+                              className="p-2 text-red-600 hover:text-red-700 hover:bg-red-100 dark:hover:bg-red-900"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Manage Orders Tab */}
+          <TabsContent value="orders" className="mt-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-xl font-semibold flex items-center">
+                  <ShoppingCart className="h-5 w-5 mr-2 text-green-500" />
+                  {t('admin.manageOrders')}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>{t('admin.table.orderId')}</TableHead>
+                      <TableHead>{t('admin.table.buyer')}</TableHead>
+                      <TableHead>{t('admin.table.seller')}</TableHead>
+                      <TableHead>{t('admin.table.item')}</TableHead>
+                      <TableHead>{t('admin.table.points')}</TableHead>
+                      <TableHead>{t('admin.table.date')}</TableHead>
+                      <TableHead>{t('admin.table.status')}</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {mockOrders.map((order) => (
+                      <TableRow key={order.id}>
+                        <TableCell>
+                          <span className="font-mono text-sm">{order.id}</span>
+                        </TableCell>
+                        <TableCell>
+                          <span className="font-medium">{order.buyer}</span>
+                        </TableCell>
+                        <TableCell>
+                          <span className="font-medium">{order.seller}</span>
+                        </TableCell>
+                        <TableCell>
+                          <span>{order.item}</span>
+                        </TableCell>
+                        <TableCell>
+                          <span className="font-medium">{order.points} pts</span>
+                        </TableCell>
+                        <TableCell>
+                          <span className="text-sm text-muted-foreground">
+                            {new Date(order.date).toLocaleDateString()}
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          <Badge className={getStatusColor(order.status)}>
+                            {order.status.replace('_', ' ')}
+                          </Badge>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
 
         {/* Item Preview Dialog */}
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -264,7 +513,7 @@ const AdminPanel: React.FC = () => {
                 <DialogHeader>
                   <DialogTitle>{selectedItem.title}</DialogTitle>
                   <DialogDescription>
-                    Review item details before making a decision
+                    {t('admin.reviewItem')}
                   </DialogDescription>
                 </DialogHeader>
                 
@@ -281,27 +530,27 @@ const AdminPanel: React.FC = () => {
                   </div>
                   
                   <div>
-                    <h3 className="font-semibold mb-2">Description</h3>
+                    <h3 className="font-semibold mb-2">{t('item.description')}</h3>
                     <p className="text-muted-foreground">{selectedItem.description}</p>
                   </div>
                   
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     <div>
-                      <span className="font-medium">Category:</span> {selectedItem.category}
+                      <span className="font-medium">{t('item.category')}:</span> {selectedItem.category}
                     </div>
                     <div>
-                      <span className="font-medium">Size:</span> {selectedItem.size.toUpperCase()}
+                      <span className="font-medium">{t('item.size')}:</span> {selectedItem.size.toUpperCase()}
                     </div>
                     <div>
-                      <span className="font-medium">Condition:</span> {selectedItem.condition.replace('_', ' ')}
+                      <span className="font-medium">{t('item.condition')}:</span> {selectedItem.condition.replace('_', ' ')}
                     </div>
                     <div>
-                      <span className="font-medium">Points:</span> {selectedItem.points}
+                      <span className="font-medium">{t('item.points')}:</span> {selectedItem.points}
                     </div>
                   </div>
                   
                   <div>
-                    <h3 className="font-semibold mb-2">Tags</h3>
+                    <h3 className="font-semibold mb-2">{t('item.tags')}</h3>
                     <div className="flex flex-wrap gap-2">
                       {selectedItem.tags.map((tag: string, index: number) => (
                         <Badge key={index} variant="secondary">

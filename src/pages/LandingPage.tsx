@@ -3,7 +3,7 @@ import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { useTranslation } from 'react-i18next';
-import { ArrowRight, Recycle, Users, Leaf, Star, TrendingUp } from 'lucide-react';
+import { ArrowRight, Recycle, Users, Leaf, Star, TrendingUp, Quote } from 'lucide-react';
 import { RootState } from '../store';
 import { setFeaturedItems } from '../store/slices/itemsSlice';
 import { ROUTES } from '../config/constants';
@@ -11,6 +11,8 @@ import itemService from '../services/itemService';
 import { Button } from '../components/ui/button';
 import { Card, CardContent } from '../components/ui/card';
 import ItemCarousel from '../components/common/ItemCarousel';
+import CategoryCard from '../components/common/CategoryCard';
+import TestimonialCard from '../components/common/TestimonialCard';
 
 const LandingPage: React.FC = () => {
   const { t } = useTranslation();
@@ -41,29 +43,66 @@ const LandingPage: React.FC = () => {
     }
   };
 
+  const categories = [
+    { name: t('categories.tshirts'), image: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80', route: '/category/tshirts' },
+    { name: t('categories.bottomwear'), image: 'https://images.unsplash.com/photo-1542272604-787c3835535d?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80', route: '/category/bottomwear' },
+    { name: t('categories.tops'), image: 'https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80', route: '/category/tops' },
+    { name: t('categories.hoodies'), image: 'https://images.unsplash.com/photo-1556821840-3a63f95609a7?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80', route: '/category/hoodies' },
+    { name: t('categories.jackets'), image: 'https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80', route: '/category/jackets' },
+    { name: t('categories.ethnic'), image: 'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80', route: '/category/ethnic' },
+    { name: t('categories.accessories'), image: 'https://images.unsplash.com/photo-1506629905850-b3133596e19a?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80', route: '/category/accessories' }
+  ];
+
+  const testimonials = [
+    {
+      name: 'Sarah Johnson',
+      avatar: 'https://images.unsplash.com/photo-1494790108755-2616b9e75e4c?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&q=80',
+      rating: 5,
+      text: t('testimonials.sarah')
+    },
+    {
+      name: 'Mike Chen',
+      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&q=80',
+      rating: 5,
+      text: t('testimonials.mike')
+    },
+    {
+      name: 'Emma Wilson',
+      avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&q=80',
+      rating: 4,
+      text: t('testimonials.emma')
+    },
+    {
+      name: 'Alex Rodriguez',
+      avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&q=80',
+      rating: 5,
+      text: t('testimonials.alex')
+    }
+  ];
+
   const features = [
     {
       icon: <Recycle className="h-8 w-8 text-green-500" />,
-      title: 'Sustainable Fashion',
-      description: 'Give your clothes a second life and reduce fashion waste'
+      title: t('features.sustainable.title'),
+      description: t('features.sustainable.description')
     },
     {
       icon: <Users className="h-8 w-8 text-blue-500" />,
-      title: 'Community Driven',
-      description: 'Connect with fashion lovers and build a sustainable community'
+      title: t('features.community.title'),
+      description: t('features.community.description')
     },
     {
       icon: <Leaf className="h-8 w-8 text-emerald-500" />,
-      title: 'Eco-Friendly',
-      description: 'Make a positive impact on the environment with every swap'
+      title: t('features.ecofriendly.title'),
+      description: t('features.ecofriendly.description')
     }
   ];
 
   const stats = [
-    { number: '10K+', label: 'Items Exchanged' },
-    { number: '5K+', label: 'Happy Users' },
-    { number: '50K+', label: 'Points Earned' },
-    { number: '95%', label: 'Satisfaction Rate' }
+    { number: '10K+', label: t('stats.itemsExchanged') },
+    { number: '5K+', label: t('stats.happyUsers') },
+    { number: '50K+', label: t('stats.pointsEarned') },
+    { number: '95%', label: t('stats.satisfactionRate') }
   ];
 
   return (
@@ -120,13 +159,36 @@ const LandingPage: React.FC = () => {
         </div>
       </section>
 
-      {/* Features Section */}
+      {/* Categories Section */}
       <section className="py-20 bg-muted/30">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-foreground mb-4">Why Choose ReWear?</h2>
+            <h2 className="text-3xl font-bold text-foreground mb-4">{t('categories.title')}</h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
-              Join the sustainable fashion revolution and discover a new way to refresh your wardrobe
+              {t('categories.subtitle')}
+            </p>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
+            {categories.map((category, index) => (
+              <CategoryCard
+                key={index}
+                name={category.name}
+                image={category.image}
+                onClick={() => navigate(category.route)}
+              />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Features Section */}
+      <section className="py-20">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-foreground mb-4">{t('features.title')}</h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto">
+              {t('features.subtitle')}
             </p>
           </div>
 
@@ -152,19 +214,37 @@ const LandingPage: React.FC = () => {
 
       {/* Featured Items Section */}
       {featuredItems.length > 0 && (
-        <section className="py-20">
+        <section className="py-20 bg-muted/30">
           <div className="container mx-auto px-4">
             <ItemCarousel items={featuredItems} title={t('landing.featured')} />
           </div>
         </section>
       )}
 
+      {/* Testimonials Section */}
+      <section className="py-20">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-foreground mb-4">{t('testimonials.title')}</h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto">
+              {t('testimonials.subtitle')}
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {testimonials.map((testimonial, index) => (
+              <TestimonialCard key={index} {...testimonial} />
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Stats Section */}
       <section className="py-20 bg-gradient-to-r from-purple-900/10 via-background to-pink-900/10">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-foreground mb-4">Our Impact</h2>
-            <p className="text-muted-foreground">Numbers that show our growing community</p>
+            <h2 className="text-3xl font-bold text-foreground mb-4">{t('stats.title')}</h2>
+            <p className="text-muted-foreground">{t('stats.subtitle')}</p>
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
@@ -186,10 +266,10 @@ const LandingPage: React.FC = () => {
       <section className="py-20 bg-gradient-to-r from-purple-500 to-pink-500">
         <div className="container mx-auto px-4 text-center">
           <h2 className="text-3xl font-bold text-white mb-4">
-            Ready to Start Your Sustainable Fashion Journey?
+            {t('landing.cta.ready')}
           </h2>
           <p className="text-white/90 mb-8 max-w-2xl mx-auto">
-            Join thousands of users who are already making a difference through fashion exchange
+            {t('landing.cta.join')}
           </p>
           <Button
             size="lg"
@@ -197,7 +277,7 @@ const LandingPage: React.FC = () => {
             onClick={() => handleCTAClick(ROUTES.LOGIN)}
             className="px-8 py-3 text-lg"
           >
-            Get Started Today
+            {t('landing.cta.getStarted')}
             <ArrowRight className="ml-2 h-5 w-5" />
           </Button>
         </div>
