@@ -1,6 +1,6 @@
 
 import axios from 'axios';
-import { toast } from 'react-toastify';
+import { toast } from 'sonner';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
 
@@ -30,9 +30,9 @@ api.interceptors.request.use(
 // Response interceptor for error handling
 api.interceptors.response.use(
   (response) => {
-    // Show success toast for successful requests
-    if (response.config.method !== 'get') {
-      toast.success(response.data.message || 'Operation successful');
+    // Show success toast for successful requests (except GET)
+    if (response.config.method !== 'get' && response.data?.message) {
+      toast.success(response.data.message);
     }
     return response;
   },

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Provider } from 'react-redux';
@@ -87,7 +86,6 @@ function App() {
                 <Route path="/404" element={<NotFound />} />
                 <Route path="*" element={<Navigate to="/404" replace />} />
               </Routes>
-              <Toaster />
               <SonnerToaster />
             </div>
           </Router>
