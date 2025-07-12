@@ -1,4 +1,6 @@
+
 import { itemsAPI, adminAPI } from './apiService';
+import { toast } from 'sonner';
 
 export interface CreateItemData {
   title: string;
@@ -14,10 +16,12 @@ export interface CreateItemData {
 class ItemService {
   async getFeaturedItems() {
     try {
-      // const response = await itemsAPI.getAvailableItems();
-      // return response.items;
-
-      // Dummy data for demo
+      const response = await itemsAPI.getAvailableItems();
+      return response.items || [];
+    } catch (error) {
+      // Fallback to dummy data for demo if API fails
+      console.warn('API call failed, using dummy data:', error);
+      
       return [
         {
           id: '1',
@@ -54,28 +58,29 @@ class ItemService {
           isAvailable: true
         }
       ];
-    } catch (error) {
-      throw error;
     }
   }
 
   async getItemById(id: string) {
     try {
-      // const response = await itemsAPI.getItemById(id);
-      // return response.item;
-
+      const response = await itemsAPI.getItemById(id);
+      return response.item;
+    } catch (error) {
+      // Fallback to finding in featured items
       const items = await this.getFeaturedItems();
       return items.find(item => item.id === id);
-    } catch (error) {
-      throw error;
     }
   }
 
   async getUserItems(userId: string) {
     try {
-      // const response = await itemsAPI.getMyItems();
-      // return response.items;
-
+      const response = await itemsAPI.getMyItems();
+      return response.items?.filter((item: any) => item.isAvailable) || [];
+    } catch (error: any) {
+      const message = error.response?.data?.message || 'Failed to load your items';
+      toast.error(message);
+      
+      // Fallback to dummy data for demo
       return [
         {
           id: '4',
@@ -94,8 +99,6 @@ class ItemService {
           isAvailable: true
         }
       ];
-    } catch (error) {
-      throw error;
     }
   }
 
@@ -113,10 +116,14 @@ class ItemService {
         formData.append(`images`, image);
       });
 
-      // const response = await itemsAPI.addItem(formData);
-      // return response.item;
-
-      // Simulate API call
+      const response = await itemsAPI.addItem(formData);
+      toast.success('Item created successfully!');
+      return response.item;
+    } catch (error: any) {
+      const message = error.response?.data?.message || 'Failed to create item';
+      toast.error(message);
+      
+      // Simulate API call for demo
       await new Promise(resolve => setTimeout(resolve, 1500));
       
       return {
@@ -135,16 +142,15 @@ class ItemService {
         isAvailable: true,
         points: this.calculatePoints(itemData.condition)
       };
-    } catch (error) {
-      throw error;
     }
   }
 
   async getPendingItems() {
     try {
-      // const response = await itemsAPI.getAllItems();
-      // return response.items.filter(item => item.status === 'pending');
-
+      const response = await itemsAPI.getAllItems();
+      return response.items?.filter((item: any) => item.status === 'pending') || [];
+    } catch (error) {
+      // Fallback to dummy data for demo
       return [
         {
           id: '5',
@@ -163,34 +169,38 @@ class ItemService {
           isAvailable: true
         }
       ];
-    } catch (error) {
-      throw error;
     }
   }
 
   async approveItem(itemId: string) {
     try {
-      // await itemsAPI.updateItemStatus(itemId, 'approved');
-      console.log(`Item ${itemId} approved`);
-    } catch (error) {
+      await itemsAPI.updateItemStatus(itemId, 'approved');
+      toast.success('Item approved successfully!');
+    } catch (error: any) {
+      const message = error.response?.data?.message || 'Failed to approve item';
+      toast.error(message);
       throw error;
     }
   }
 
   async rejectItem(itemId: string) {
     try {
-      // await itemsAPI.updateItemStatus(itemId, 'rejected');
-      console.log(`Item ${itemId} rejected`);
-    } catch (error) {
+      await itemsAPI.updateItemStatus(itemId, 'rejected');
+      toast.success('Item rejected successfully!');
+    } catch (error: any) {
+      const message = error.response?.data?.message || 'Failed to reject item';
+      toast.error(message);
       throw error;
     }
   }
 
   async deleteItem(itemId: string) {
     try {
-      // await itemsAPI.deleteItem(itemId);
-      console.log(`Item ${itemId} deleted`);
-    } catch (error) {
+      await itemsAPI.deleteItem(itemId);
+      toast.success('Item deleted successfully!');
+    } catch (error: any) {
+      const message = error.response?.data?.message || 'Failed to delete item';
+      toast.error(message);
       throw error;
     }
   }

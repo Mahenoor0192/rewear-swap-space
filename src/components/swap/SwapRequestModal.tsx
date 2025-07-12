@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { X, Package, Star } from 'lucide-react';
+import { X, Package, Star, AlertCircle } from 'lucide-react';
 import { RootState } from '../../store';
 import { setUserItems } from '../../store/slices/itemsSlice';
 import itemService from '../../services/itemService';
@@ -30,6 +30,7 @@ const SwapRequestModal: React.FC<SwapRequestModalProps> = ({
   const [selectedItemId, setSelectedItemId] = useState<string>('');
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string>('');
 
   useEffect(() => {
     if (isOpen && user) {
@@ -41,11 +42,13 @@ const SwapRequestModal: React.FC<SwapRequestModalProps> = ({
     if (!user) return;
     
     setLoading(true);
+    setError('');
     try {
       const items = await itemService.getUserItems(user.id);
       dispatch(setUserItems(items.filter((item: any) => item.isAvailable)));
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to load user items:', error);
+      setError('Failed to load your items. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -55,12 +58,14 @@ const SwapRequestModal: React.FC<SwapRequestModalProps> = ({
     if (!selectedItemId) return;
 
     setSubmitting(true);
+    setError('');
     try {
       await swapService.requestSwap(selectedItemId, targetItemId);
       onClose();
       setSelectedItemId('');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to create swap request:', error);
+      setError(error.response?.data?.message || 'Failed to send swap request. Please try again.');
     } finally {
       setSubmitting(false);
     }
@@ -89,6 +94,13 @@ const SwapRequestModal: React.FC<SwapRequestModalProps> = ({
           <p className="text-muted-foreground mb-6">
             Select one of your items to offer in exchange:
           </p>
+
+          {error && (
+            <div className="flex items-center space-x-2 p-3 mb-4 bg-red-100 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg">
+              <AlertCircle className="h-4 w-4 text-red-600" />
+              <p className="text-red-700 dark:text-red-300 text-sm">{error}</p>
+            </div>
+          )}
 
           {loading ? (
             <div className="flex items-center justify-center py-8">
