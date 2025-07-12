@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { useTranslation } from 'react-i18next';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
@@ -153,6 +153,20 @@ const LoginPage: React.FC = () => {
                 </Form>
               )}
             </Formik>
+
+            <div className="mt-6 text-center">
+              <p className="text-sm text-muted-foreground mb-4">
+                Don't have an account?
+              </p>
+              <Link to={ROUTES.SIGNUP}>
+                <Button
+                  variant="outline"
+                  className="w-full border-purple-500/20 text-purple-600 hover:bg-purple-500/10"
+                >
+                  Create Account
+                </Button>
+              </Link>
+            </div>
 
             <div className="mt-6 p-4 bg-muted/30 rounded-lg">
               <p className="text-sm text-muted-foreground mb-2">Demo Credentials:</p>
